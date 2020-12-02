@@ -11,7 +11,8 @@ enum Camera_Movement {
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+	UPWARD,
 };
 
 // Default camera values
@@ -77,9 +78,11 @@ public:
             Position -= Right * velocity;
         if (direction == RIGHT)
             Position += Right * velocity;
-    }
+		if (direction == UPWARD)
+			Position += Up * velocity;
+	}
 
-    // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
+	// processes input received from a mouse input system. Expects the offset value in both the x and y direction.
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
     {
         xoffset *= MouseSensitivity;

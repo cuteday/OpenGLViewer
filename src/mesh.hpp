@@ -58,6 +58,8 @@ public:
         unsigned int specularNr = 1;
         unsigned int normalNr   = 1;
         unsigned int heightNr   = 1;
+		// currently fragShader only declares 1 diffuse texture sampler...
+		// so... only diffuse#1 will be activated...
         for(unsigned int i = 0; i < textures.size(); i++)
         {
             glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding

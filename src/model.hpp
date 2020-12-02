@@ -153,6 +153,7 @@ private:
         }
 
 		if(mesh->mMaterialIndex >= 0){ 			// if mesh has material
+			// these materials apply to all vertices in this Mesh node
 			// process materials
 			aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];    
 			// we assume a convention for sampler names in the shaders. Each diffuse texture should be named

@@ -16,7 +16,6 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/deps/glfw)
-#add_subdirectory(${PROJECT_SOURCE_DIR}/deps/assimp)
 
 find_package(OpenGL REQUIRED)
 find_package(assimp REQUIRED)
@@ -24,9 +23,9 @@ find_package(assimp REQUIRED)
 link_directories(${ASSIMP_LIBRARY_DIRS})
 include_directories(${ASSIMP_INCLUDE_DIRS})
 
-
 include_directories (/usr/local/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src)
-set(SRC_LIST ${PROJECT_SOURCE_DIR}/include/glad.c 
+set(SRC_LIST 
+	${PROJECT_SOURCE_DIR}/include/glad.c 
 	${PROJECT_SOURCE_DIR}/include/stb_image.h 
 	${PROJECT_SOURCE_DIR}/src/shader.hpp 
 	${PROJECT_SOURCE_DIR}/src/mesh.hpp 
