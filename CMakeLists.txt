@@ -1,5 +1,5 @@
 cmake_minimum_required ( VERSION 3.0)       
-project                ( OpenGLProgram )          
+project                ( OpenGLViewer )          
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1) 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -15,6 +15,10 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
+add_compile_options(
+	-Wno-invalid-offsetof
+)
+
 add_subdirectory(${PROJECT_SOURCE_DIR}/deps/glfw)
 
 find_package(OpenGL REQUIRED)
@@ -22,19 +26,26 @@ find_package(assimp REQUIRED)
 
 link_directories(${ASSIMP_LIBRARY_DIRS})
 include_directories(${ASSIMP_INCLUDE_DIRS})
+include_directories (
+	/usr/local/include 
+	${PROJECT_SOURCE_DIR}/include 
+	${PROJECT_SOURCE_DIR}/src)
 
-include_directories (/usr/local/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src)
 set(SRC_LIST 
 	${PROJECT_SOURCE_DIR}/include/glad.c 
 	${PROJECT_SOURCE_DIR}/include/stb_image.h 
 	${PROJECT_SOURCE_DIR}/src/shader.hpp 
 	${PROJECT_SOURCE_DIR}/src/mesh.hpp 
 	${PROJECT_SOURCE_DIR}/src/model.hpp 
-	${PROJECT_SOURCE_DIR}/src/main.cpp)
-add_executable(${PROJECT_NAME} ${SRC_LIST})
+	${PROJECT_SOURCE_DIR}/src/filter.hpp )
 
+set(TARGET 
+	viewer)
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} glfw)
-target_link_libraries(${PROJECT_NAME} ${ASSIMP_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${OPENGL_gl_LIBRARY})
+foreach(executable IN LISTS TARGET)
+	add_executable(${executable} ${PROJECT_SOURCE_DIR}/src/${executable}.cpp ${SRC_LIST})
+	target_include_directories(${executable} PUBLIC ${OPENGL_INCLUDE_DIR})
+	target_link_libraries(${executable} glfw)
+	target_link_libraries(${executable} ${ASSIMP_LIBRARIES})
+	target_link_libraries(${executable} ${OPENGL_gl_LIBRARY})
+endforeach()

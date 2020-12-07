@@ -1,5 +1,5 @@
 #version 330 core
-
+// gl_FragCoord
 out vec4 FragColor;
 
 in vec3 FragPos;
@@ -10,6 +10,8 @@ in vec4 Color;
 struct Material{		
 	vec3 diffuse;
 	vec3 specular;		// currently we dont have texture with specular albedo!...
+	sampler2D diffuse1;
+	sampler2D specular1;		// currently we dont have texture with specular albedo!...
 	float shininess;
 };
 
@@ -82,12 +84,12 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float distance = length(light.position - fragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
     
-	vec3 ambient = light.ambient * material.diffuse;
-    vec3 diffuse = light.diffuse * diff * material.diffuse;
-    vec3 specular = light.specular * spec * material.specular;
+	// vec3 ambient = light.ambient * material.diffuse;
+    // vec3 diffuse = light.diffuse * diff * material.diffuse;
+    // vec3 specular = light.specular * spec * material.specular;
 
-	// vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
-    // vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
-    // vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
+	vec3 ambient = light.ambient * vec3(texture(material.diffuse1, TexCoords));
+    vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse1, TexCoords));
+    vec3 specular = light.specular * spec * vec3(texture(material.specular1, TexCoords));
     return (ambient + diffuse + specular) * attenuation;
 }
