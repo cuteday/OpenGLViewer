@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-//#define FILTER_ENABLED 0
+#define FILTER_ENABLED 0
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -29,6 +29,7 @@ const char *PATH_SHADER_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shad
 const char *PATH_SHADER_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/lighting.frag";
 const char *PATH_SHADER_SCREEN_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/filter.vert";
 const char *PATH_SHADER_SCREEN_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/filter.frag";
+const char *PATH_SHADER_SCREEN_BLUR = "/Users/cappu/Public/Projects/OpenGLViewer/shader/kernel.frag";
 
 const char *PATH_MODEL_NANOSUIT = "/Users/cappu/Public/Projects/OpenGLViewer/model/nanosuit/nanosuit.obj";
 const char *PATH_MODEL_REPLICA = "/Users/cappu/Public/Projects/OpenGLViewer/model/Replica/apartment_0/mesh.ply";
@@ -86,7 +87,7 @@ int main()
 
 	Model ourModel(PATH_MODEL_NANOSUIT);
 	Shader shader(PATH_SHADER_VERTEX, PATH_SHADER_FRAG);
-	Shader screenShader(PATH_SHADER_SCREEN_VERTEX, PATH_SHADER_SCREEN_FRAG);
+	Shader screenShader(PATH_SHADER_SCREEN_VERTEX, PATH_SHADER_SCREEN_BLUR);
 	Filter filter(SCR_WIDTH, SCR_HEIGHT);
 
 	shader.use();
@@ -104,7 +105,7 @@ int main()
 
         processInput(window);
 
-#ifdef FILTER_ENABLED
+#if(FILTER_ENABLED)
 		filter.toTexture();			// switch framebuffer to screen texture... 
 #endif
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -123,7 +124,7 @@ int main()
         shader.setMat4("view", view);
         shader.setMat4("model", model);
         ourModel.Draw(shader);
-#ifdef FILTER_ENABLED
+#if(FILTER_ENABLED)
 		filter.Draw(screenShader);
 #endif
 		glfwSwapBuffers(window);
