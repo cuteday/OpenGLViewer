@@ -9,3 +9,6 @@ For self use. Tested on OS X only.
 
 ### Dependency
 Assimp
+GLFW
+GLAD
+GLM

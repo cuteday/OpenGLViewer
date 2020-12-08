@@ -20,16 +20,17 @@ add_compile_options(
 )
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/deps/glfw)
+add_subdirectory(${PROJECT_SOURCE_DIR}/deps/glm)
 
 find_package(OpenGL REQUIRED)
 find_package(assimp REQUIRED)
 
 link_directories(${ASSIMP_LIBRARY_DIRS})
-include_directories(${ASSIMP_INCLUDE_DIRS})
 include_directories (
 	/usr/local/include 
 	${PROJECT_SOURCE_DIR}/include 
-	${PROJECT_SOURCE_DIR}/src)
+	${PROJECT_SOURCE_DIR}/src
+	${ASSIMP_INCLUDE_DIRS})
 
 set(SRC_LIST 
 	${PROJECT_SOURCE_DIR}/include/glad.c 
