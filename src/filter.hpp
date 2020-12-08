@@ -25,7 +25,7 @@ public:
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
-	void toTexture(){
+	void toScreenTexture(){
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	}
 

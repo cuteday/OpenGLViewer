@@ -4,7 +4,8 @@ project                ( OpenGLViewer )
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1) 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-set(CXX_FLAGS -std=c++11)
+add_definitions(-std=c++11)
+set(CXX_FLAGS "-std=c++11")
 set(CMAKE_CXX_FLAGS_DEBUG   "-O0" )
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -finline-limit=1000 -DNDEBUG " )
 
@@ -15,8 +16,10 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
+
 add_compile_options(
 	-Wno-invalid-offsetof
+	-Wno-c++11-extensions
 )
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/deps/glfw)
@@ -33,12 +36,13 @@ include_directories (
 	${ASSIMP_INCLUDE_DIRS})
 
 set(SRC_LIST 
-	${PROJECT_SOURCE_DIR}/include/glad.c 
+	${PROJECT_SOURCE_DIR}/include/glad.cpp
 	${PROJECT_SOURCE_DIR}/include/stb_image.h 
 	${PROJECT_SOURCE_DIR}/src/shader.hpp 
 	${PROJECT_SOURCE_DIR}/src/mesh.hpp 
 	${PROJECT_SOURCE_DIR}/src/model.hpp 
-	${PROJECT_SOURCE_DIR}/src/filter.hpp )
+	${PROJECT_SOURCE_DIR}/src/filter.hpp 
+	${PROJECT_SOURCE_DIR}/src/skybox.hpp )
 
 set(TARGET 
 	viewer)

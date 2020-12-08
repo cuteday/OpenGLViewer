@@ -9,10 +9,12 @@
 #include "camera.hpp"
 #include "model.hpp"
 #include "filter.hpp"
+#include "skybox.hpp"
 
 #include <iostream>
 
 #define FILTER_ENABLED 0
+#define SKYBOX_ENABLED 1
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -29,7 +31,10 @@ const char *PATH_SHADER_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shad
 const char *PATH_SHADER_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/lighting.frag";
 const char *PATH_SHADER_SCREEN_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/filter.vert";
 const char *PATH_SHADER_SCREEN_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/filter.frag";
-const char *PATH_SHADER_SCREEN_BLUR = "/Users/cappu/Public/Projects/OpenGLViewer/shader/kernel.frag";
+const char *PATH_SHADER_SKYBOX_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/skybox.vert";
+const char *PATH_SHADER_SKYBOX_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/skybox.frag";
+
+const char *PATH_TEXTURE_SKYBOX = "/Users/cappu/Public/Projects/OpenGLViewer/texture/skybox/";
 
 const char *PATH_MODEL_NANOSUIT = "/Users/cappu/Public/Projects/OpenGLViewer/model/nanosuit/nanosuit.obj";
 const char *PATH_MODEL_REPLICA = "/Users/cappu/Public/Projects/OpenGLViewer/model/Replica/apartment_0/mesh.ply";
@@ -87,8 +92,11 @@ int main()
 
 	Model ourModel(PATH_MODEL_NANOSUIT);
 	Shader shader(PATH_SHADER_VERTEX, PATH_SHADER_FRAG);
-	Shader screenShader(PATH_SHADER_SCREEN_VERTEX, PATH_SHADER_SCREEN_BLUR);
+	
 	Filter filter(SCR_WIDTH, SCR_HEIGHT);
+	Shader screenShader(PATH_SHADER_SCREEN_VERTEX, PATH_SHADER_SCREEN_FRAG);
+	Skybox skybox(skyboxFaces, PATH_TEXTURE_SKYBOX);
+	Shader skyboxShader(PATH_SHADER_SKYBOX_VERTEX, PATH_SHADER_SKYBOX_FRAG);
 
 	shader.use();
 	setLighting(shader);
@@ -106,27 +114,36 @@ int main()
         processInput(window);
 
 #if(FILTER_ENABLED)
-		filter.toTexture();			// switch framebuffer to screen texture... 
+		filter.toScreenTexture();			// switch framebuffer to screen texture... 
 #endif
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 
-        shader.use();
-
 		// view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 model = glm::mat4(1.0f);	
+
+		shader.use();
         // render the loaded model
 		shader.setVec3("viewPos", camera.Position);
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
         shader.setMat4("model", model);
         ourModel.Draw(shader);
+
+#if(SKYBOX_ENABLED)
+		skyboxShader.use();
+		skyboxShader.setMat4("view", glm::mat4(glm::mat3(view)));
+		skyboxShader.setMat4("projection", projection);
+		skybox.Draw(skyboxShader);
+#endif
+
 #if(FILTER_ENABLED)
 		filter.Draw(screenShader);
 #endif
+
 		glfwSwapBuffers(window);
         glfwPollEvents();
     }

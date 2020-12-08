@@ -1,6 +1,6 @@
 # OpenGLViewer
 
-An OpenGL tool reads 3D scenes, for realtime interactive viewing, sampling camera views at given camera positions, lignting configurations, etc.
+An OpenGL tool reads 3D scenes, for realtime interactive FPS camera, sampling camera views at given camera positions, lignting configurations, etc.
 
 For self use. Tested on OS X only.
 
@@ -9,6 +9,9 @@ For self use. Tested on OS X only.
 
 ### Dependency
 Assimp
+
 GLFW
+
 GLAD
+
 GLM
