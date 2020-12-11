@@ -10,13 +10,15 @@
 #include "model.hpp"
 #include "filter.hpp"
 #include "skybox.hpp"
+#include "multisample.hpp"
 
 #include <iostream>
 
-#define FILTER_ENABLED 0
-#define SKYBOX_ENABLED 1
+bool ENABLE_FILTER = 0;
+bool ENABLE_SKYBOX = 1;
+bool ENABLE_MSAA = 1;
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
@@ -30,7 +32,7 @@ const unsigned int SCR_HEIGHT = 720;
 const char *PATH_SHADER_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/lighting.vert";
 const char *PATH_SHADER_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/lighting.frag";
 const char *PATH_SHADER_SCREEN_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/filter.vert";
-const char *PATH_SHADER_SCREEN_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/filter.frag";
+const char *PATH_SHADER_SCREEN_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/kernel.frag";
 const char *PATH_SHADER_SKYBOX_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/skybox.vert";
 const char *PATH_SHADER_SKYBOX_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/skybox.frag";
 
@@ -58,12 +60,11 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGLViewer", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGLViewer", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -89,6 +90,7 @@ int main()
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
 	// glEnable(GL_CULL_FACE); // face culling
+	glEnable(GL_MULTISAMPLE);
 
 	Model ourModel(PATH_MODEL_NANOSUIT);
 	Shader shader(PATH_SHADER_VERTEX, PATH_SHADER_FRAG);
@@ -97,6 +99,7 @@ int main()
 	Shader screenShader(PATH_SHADER_SCREEN_VERTEX, PATH_SHADER_SCREEN_FRAG);
 	Skybox skybox(skyboxFaces, PATH_TEXTURE_SKYBOX);
 	Shader skyboxShader(PATH_SHADER_SKYBOX_VERTEX, PATH_SHADER_SKYBOX_FRAG);
+	MultiSample multiSample(SCR_WIDTH, SCR_HEIGHT, 4);
 
 	shader.use();
 	setLighting(shader);
@@ -110,12 +113,14 @@ int main()
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-
         processInput(window);
 
-#if(FILTER_ENABLED)
-		filter.toScreenTexture();			// switch framebuffer to screen texture... 
-#endif
+		if(ENABLE_MSAA)
+			multiSample.offScreen();			// switch to multi-sampling offscreen fbo
+		else if (ENABLE_FILTER)
+			filter.toScreenTexture();			// switch framebuffer to screen texture... 
+
+
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
@@ -133,19 +138,20 @@ int main()
         shader.setMat4("model", model);
         ourModel.Draw(shader);
 
-#if(SKYBOX_ENABLED)
-		skyboxShader.use();
-		skyboxShader.setMat4("view", glm::mat4(glm::mat3(view)));
-		skyboxShader.setMat4("projection", projection);
-		skybox.Draw(skyboxShader);
-#endif
+		if(ENABLE_SKYBOX){
+			skyboxShader.use();
+			skyboxShader.setMat4("view", glm::mat4(glm::mat3(view)));
+			skyboxShader.setMat4("projection", projection);
+			skybox.Draw(skyboxShader);
+		}
 
-#if(FILTER_ENABLED)
-		filter.Draw(screenShader);
-#endif
+		if(ENABLE_MSAA)
+			multiSample.Draw(ENABLE_FILTER ? filter.getFrameBuffer() : 0);
+		if (ENABLE_FILTER)
+			filter.Draw(screenShader);
 
 		glfwSwapBuffers(window);
-        glfwPollEvents();
+		glfwPollEvents();
     }
 
     glfwTerminate();

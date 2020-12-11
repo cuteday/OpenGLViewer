@@ -13,6 +13,11 @@ out vec4 Color;
 // out vec3 Tangent;
 // out vec3 Bitangent;
 
+// layout (std140) uniform Matrices{
+// 	mat4 projection;
+// 	mat4 view;
+// };
+
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;

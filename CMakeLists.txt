@@ -1,4 +1,4 @@
-cmake_minimum_required ( VERSION 3.0)       
+cmake_minimum_required ( VERSION 3.1)       
 project                ( OpenGLViewer )          
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1) 
@@ -42,7 +42,8 @@ set(SRC_LIST
 	${PROJECT_SOURCE_DIR}/src/mesh.hpp 
 	${PROJECT_SOURCE_DIR}/src/model.hpp 
 	${PROJECT_SOURCE_DIR}/src/filter.hpp 
-	${PROJECT_SOURCE_DIR}/src/skybox.hpp )
+	${PROJECT_SOURCE_DIR}/src/skybox.hpp 
+	${PROJECT_SOURCE_DIR}/src/multisample.hpp )
 
 set(TARGET 
 	viewer)
