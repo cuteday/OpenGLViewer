@@ -10,7 +10,7 @@
 #include "model.hpp"
 #include "filter.hpp"
 #include "skybox.hpp"
-#include "multisample.hpp"
+#include "msaa.hpp"
 
 #include <iostream>
 
@@ -145,7 +145,7 @@ int main()
 			skybox.Draw(skyboxShader);
 		}
 
-		if(ENABLE_MSAA)
+		if(ENABLE_MSAA)		
 			multiSample.Draw(ENABLE_FILTER ? filter.getFrameBuffer() : 0);
 		if (ENABLE_FILTER)
 			filter.Draw(screenShader);

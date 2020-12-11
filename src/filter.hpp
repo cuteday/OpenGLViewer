@@ -8,9 +8,12 @@
 class Filter{
 public: 
 
-	Filter(unsigned int _width = 1080, unsigned int _height = 720):
+	Filter(unsigned int _width, unsigned int _height):
 		width(_width), height(_height){
-		setupFilter();
+#ifdef __APPLE__	// retina
+		width *= 2, height *= 2;
+#endif
+		setup();
 	}
 
 	void Draw(Shader screenShader){
@@ -31,38 +34,30 @@ public:
 
 	static void generateFramebuffer(
 					unsigned int width, 
-					unsigned height, 
-					unsigned int *_framebuffer, 
-					unsigned int *_textureColorBuffer, 
-					unsigned int *_RBO){
-		unsigned int framebuffer, textureColorbuffer, RBO;
-
-#ifdef __APPLE__	// retina
-		width *= 2, height *= 2;
-#endif
+					unsigned int height, 
+					unsigned int *framebuffer, 
+					unsigned int *textureColorbuffer, 
+					unsigned int *RBO){
 		// setup framebuffer and texture attachment
-		glGenFramebuffers(1, &framebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glGenFramebuffers(1, framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, *framebuffer);
 		// color attachment
-		glGenTextures(1, &textureColorbuffer);
-		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);	// dont need active/ set texunit since only 1 texture
+		glGenTextures(1, textureColorbuffer);
+		glBindTexture(GL_TEXTURE_2D, *textureColorbuffer);	// dont need active/ set texunit since only 1 texture
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// filter kernel border padding 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *textureColorbuffer, 0);
 		// stencil and depth attachment
-		glGenRenderbuffers(1, &RBO);
-		glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+		glGenRenderbuffers(1, RBO);
+		glBindRenderbuffer(GL_RENDERBUFFER, *RBO);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, *RBO);
 	    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         	std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		*_framebuffer = framebuffer;
-		*_textureColorBuffer = textureColorbuffer;
-		*_RBO = RBO;
 	}
 
 	unsigned int getFrameBuffer() { return framebuffer; }
@@ -72,7 +67,7 @@ private:
 	unsigned int quadVAO, quadVBO;
 	unsigned int framebuffer, textureColorbuffer, RBO;
 
-	void setupFilter(){
+	void setup(){
 		float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
 			// positions   // texCoords
 			-1.0f,  1.0f,  0.0f, 1.0f,

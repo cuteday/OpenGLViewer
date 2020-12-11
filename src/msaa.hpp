@@ -48,9 +48,8 @@ public:
 
 	void Draw(unsigned int targetFramebuffer = 0){
 		/*
-		 * set targetFramebuffer to a value other than 0 
-		 * to draw anti-aliased image to an intermediate buffer.
-		 * 
+		 * set targetFramebuffer to a value other than 0 to draw anti-aliased image to an intermediate buffer.
+		 * e.g to draw MSAAed image to screen texture, then do filter.
 		 */
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFramebuffer);

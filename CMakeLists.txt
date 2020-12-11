@@ -43,7 +43,7 @@ set(SRC_LIST
 	${PROJECT_SOURCE_DIR}/src/model.hpp 
 	${PROJECT_SOURCE_DIR}/src/filter.hpp 
 	${PROJECT_SOURCE_DIR}/src/skybox.hpp 
-	${PROJECT_SOURCE_DIR}/src/multisample.hpp )
+	${PROJECT_SOURCE_DIR}/src/msaa.hpp )
 
 set(TARGET 
 	viewer)
