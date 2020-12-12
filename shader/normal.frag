@@ -1,8 +1,9 @@
 #version 330 core
 
-in vec3 Tangent;
+in vec3 Normal;
+in vec3 Normal0;
 out vec4 FragColor;
 
 void main(){
-	FragColor = vec4(Tangent, 1.0);
+	FragColor = vec4(Normal * 0.5 + 0.5, 1.0);
 }

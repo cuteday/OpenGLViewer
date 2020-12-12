@@ -1,6 +1,5 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -11,8 +10,10 @@
 #include "filter.hpp"
 #include "skybox.hpp"
 #include "msaa.hpp"
+#include "light.hpp"
 
 #include <iostream>
+#include <string>
 
 bool ENABLE_FILTER = 0;
 bool ENABLE_SKYBOX = 1;
@@ -31,6 +32,7 @@ const unsigned int SCR_HEIGHT = 720;
 
 const char *PATH_SHADER_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/lighting.vert";
 const char *PATH_SHADER_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/lighting.frag";
+const char *PATH_SHADER_NORMAL_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/normal.frag";
 const char *PATH_SHADER_SCREEN_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/filter.vert";
 const char *PATH_SHADER_SCREEN_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/kernel.frag";
 const char *PATH_SHADER_SKYBOX_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/skybox.vert";
@@ -39,7 +41,7 @@ const char *PATH_SHADER_SKYBOX_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer
 const char *PATH_TEXTURE_SKYBOX = "/Users/cappu/Public/Projects/OpenGLViewer/texture/skybox/";
 
 const char *PATH_MODEL_NANOSUIT = "/Users/cappu/Public/Projects/OpenGLViewer/model/nanosuit/nanosuit.obj";
-const char *PATH_MODEL_REPLICA = "/Users/cappu/Public/Projects/OpenGLViewer/model/Replica/apartment_0/mesh.ply";
+const char *PATH_MODEL_CAR = "";
 const char *PATH_MODEL_SCENENET = "/Users/cappu/Public/Projects/OpenGLViewer/model/SceneNetData/1Office/66office_scene.obj";
 
 // camera
@@ -90,6 +92,7 @@ int main()
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
 	// glEnable(GL_CULL_FACE); // face culling
+	// glCullFace(GL_BACK);
 	glEnable(GL_MULTISAMPLE);
 
 	Model ourModel(PATH_MODEL_NANOSUIT);
@@ -128,7 +131,7 @@ int main()
 		// view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 model = glm::mat4(1.0f);	
+		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));	
 
 		shader.use();
         // render the loaded model
@@ -209,16 +212,17 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void setLighting(Shader shader){
 	glm::vec3 pointLightPositions[] = {
-		glm::vec3(0.0, 15.0, 0.0),
+		glm::vec3(0.0, 6.0, 0.0),
 	};
-	
-	shader.setVec3("pointLights[0].position", pointLightPositions[0]);
-	shader.setVec3("pointLights[0].ambient", glm::vec3(0.80f));
-	shader.setVec3("pointLights[0].diffuse", 0.9f, 0.9f, 0.9f);
-	shader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-	shader.setFloat("pointLights[0].constant", 1.0f);
-	shader.setFloat("pointLights[0].linear", 0.09);
-	shader.setFloat("pointLights[0].quadratic", 0.032);
+
+	vector<PointLight*> lights{
+		new PointLight(glm::vec3(0.0, 5.0, 0.0)),
+		new PointLight(glm::vec3(5.0, 0.0, 0.0)),
+		new PointLight(glm::vec3(0.0, 0.0, 5.0)),
+	};
+
+	for (int i = 0; i < lights.size(); i++)
+		lights[i]->set(&shader, "pointLights[" + std::to_string(i) + "].");
 	
 	// since we don't have texture now...
 	shader.setFloat("material.shininess", 5.0);
