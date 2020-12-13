@@ -15,9 +15,9 @@
 #include <iostream>
 #include <string>
 
-bool ENABLE_FILTER = 0;
-bool ENABLE_SKYBOX = 1;
-bool ENABLE_MSAA = 1;
+const bool ENABLE_FILTER = 0;
+const bool ENABLE_SKYBOX = 1;
+const bool ENABLE_MSAA = 1;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -41,8 +41,9 @@ const char *PATH_SHADER_SKYBOX_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer
 const char *PATH_TEXTURE_SKYBOX = "/Users/cappu/Public/Projects/OpenGLViewer/texture/skybox/";
 
 const char *PATH_MODEL_NANOSUIT = "/Users/cappu/Public/Projects/OpenGLViewer/model/nanosuit/nanosuit.obj";
-const char *PATH_MODEL_CAR = "";
+const char *PATH_MODEL_ROBOT = "/Users/cappu/Public/Projects/OpenGLViewer/model/halloween-little-witch/source/03/03.obj";
 const char *PATH_MODEL_SCENENET = "/Users/cappu/Public/Projects/OpenGLViewer/model/SceneNetData/1Office/66office_scene.obj";
+const char *PATH_MODEL_REPLICA = "/Users/cappu/Public/Projects/OpenGLViewer/model/Replica/apartment_0/mesh.ply";
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -54,10 +55,13 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-int main()
-{
-    // glfw: initialize and configure
-    // ------------------------------
+Filter *filter;
+Skybox *skybox;
+Shader *skyboxShader, *screenShader;
+MultiSample *multiSample;
+
+int main(){
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -67,8 +71,7 @@ int main()
 #endif
 
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGLViewer", NULL, NULL);
-    if (window == NULL)
-    {
+    if (window == NULL){
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
@@ -81,28 +84,33 @@ int main()
 	// hide mouse and restrict cursor to this window...
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
-    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(false);
 
     glEnable(GL_DEPTH_TEST);
-	glEnable(GL_STENCIL_TEST);
-	// glEnable(GL_CULL_FACE); // face culling
-	// glCullFace(GL_BACK);
-	glEnable(GL_MULTISAMPLE);
+	// glEnable(GL_STENCIL_TEST);
+	// glEnable(GL_CULL_FACE);	// face culling
+	// glCullFace(GL_BACK);		// this is the default
 
-	Model ourModel(PATH_MODEL_NANOSUIT);
+	Model ourModel(PATH_MODEL_SCENENET);
 	Shader shader(PATH_SHADER_VERTEX, PATH_SHADER_FRAG);
 	
-	Filter filter(SCR_WIDTH, SCR_HEIGHT);
-	Shader screenShader(PATH_SHADER_SCREEN_VERTEX, PATH_SHADER_SCREEN_FRAG);
-	Skybox skybox(skyboxFaces, PATH_TEXTURE_SKYBOX);
-	Shader skyboxShader(PATH_SHADER_SKYBOX_VERTEX, PATH_SHADER_SKYBOX_FRAG);
-	MultiSample multiSample(SCR_WIDTH, SCR_HEIGHT, 4);
+	if(ENABLE_FILTER){
+		filter = new Filter(SCR_WIDTH, SCR_HEIGHT);
+		screenShader = new Shader(PATH_SHADER_SCREEN_VERTEX, PATH_SHADER_SCREEN_FRAG);
+	}
+	if(ENABLE_SKYBOX){
+		skybox = new Skybox(skyboxFaces, PATH_TEXTURE_SKYBOX);
+		skyboxShader = new Shader(PATH_SHADER_SKYBOX_VERTEX, PATH_SHADER_SKYBOX_FRAG);
+	}
+	if(ENABLE_MSAA){
+		glEnable(GL_MULTISAMPLE);
+		multiSample = new MultiSample(SCR_WIDTH, SCR_HEIGHT, 4);
+	}
 
 	shader.use();
 	setLighting(shader);
@@ -110,31 +118,28 @@ int main()
 	// draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    while (!glfwWindowShouldClose(window))
-    {
-        // per-frame time logic
+    while (!glfwWindowShouldClose(window)){
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         processInput(window);
 
 		if(ENABLE_MSAA)
-			multiSample.offScreen();			// switch to multi-sampling offscreen fbo
+			multiSample->offScreen();			// switch to multi-sampling offscreen fbo
 		else if (ENABLE_FILTER)
-			filter.toScreenTexture();			// switch framebuffer to screen texture... 
+			filter->toScreenTexture();			// switch framebuffer to screen texture... 
 
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 
 		// view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));	
+		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.8f));	
 
 		shader.use();
-        // render the loaded model
 		shader.setVec3("viewPos", camera.Position);
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
@@ -142,16 +147,16 @@ int main()
         ourModel.Draw(shader);
 
 		if(ENABLE_SKYBOX){
-			skyboxShader.use();
-			skyboxShader.setMat4("view", glm::mat4(glm::mat3(view)));
-			skyboxShader.setMat4("projection", projection);
-			skybox.Draw(skyboxShader);
+			skyboxShader->use();
+			skyboxShader->setMat4("view", glm::mat4(glm::mat3(view)));
+			skyboxShader->setMat4("projection", projection);
+			skybox->Draw(skyboxShader);
 		}
 
 		if(ENABLE_MSAA)		
-			multiSample.Draw(ENABLE_FILTER ? filter.getFrameBuffer() : 0);
+			multiSample->Draw(ENABLE_FILTER ? filter->getFrameBuffer() : 0);
 		if (ENABLE_FILTER)
-			filter.Draw(screenShader);
+			filter->Draw(screenShader);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -161,11 +166,9 @@ int main()
     return 0;
 }
 
-void processInput(GLFWwindow *window)
-{
+void processInput(GLFWwindow *window){
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -180,52 +183,37 @@ void processInput(GLFWwindow *window)
 		camera.ProcessKeyboard(DOWNWARD, deltaTime);
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
+void framebuffer_size_callback(GLFWwindow* window, int width, int height){
+    // make sure the viewport matches the new window dimensions
+	// the width and height is actuallt 2*(w, h) (as we specified to glVp) on retina displays
     glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    if (firstMouse)
-    {
+void mouse_callback(GLFWwindow* window, double xpos, double ypos){
+    if (firstMouse){
         lastX = xpos;
         lastY = ypos;
         firstMouse = false;
     }
-
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
     lastX = xpos;
     lastY = ypos;
 
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
     camera.ProcessMouseScroll(yoffset);
 }
 
 void setLighting(Shader shader){
-	glm::vec3 pointLightPositions[] = {
-		glm::vec3(0.0, 6.0, 0.0),
-	};
-
 	vector<PointLight*> lights{
-		new PointLight(glm::vec3(0.0, 5.0, 0.0)),
+		new PointLight(glm::vec3(0.0, 6.0, 0.0)),
 		new PointLight(glm::vec3(5.0, 0.0, 0.0)),
 		new PointLight(glm::vec3(0.0, 0.0, 5.0)),
 	};
 
 	for (int i = 0; i < lights.size(); i++)
 		lights[i]->set(&shader, "pointLights[" + std::to_string(i) + "].");
-	
-	// since we don't have texture now...
-	shader.setFloat("material.shininess", 5.0);
-	shader.setVec3("material.diffuse", glm::vec3(1.0));
-	shader.setVec3("material.specular", glm::vec3(0.0));
 }

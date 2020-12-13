@@ -75,7 +75,7 @@ public:
 	static unsigned int loadCubeMap(vector<string> faces, string path){
 		int width, height, nrChannels;
 		unsigned int _texture;
-		stbi_set_flip_vertically_on_load(false);// the cubemap texture need top-down image, different from other textures!
+		//stbi_set_flip_vertically_on_load(false);// the cubemap texture need top-down image, different from other textures!
 		glGenTextures(1, &_texture);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
 		for (int i = 0; i < faces.size();i++){
@@ -90,7 +90,7 @@ public:
 			}
 			stbi_image_free(data);
 		}
-		stbi_set_flip_vertically_on_load(true);
+		//stbi_set_flip_vertically_on_load(true);
 
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -101,9 +101,9 @@ public:
 		return _texture;
 	}
 
-	void Draw(Shader skyboxShader){
+	void Draw(Shader *skyboxShader){
 		glDepthFunc(GL_LEQUAL);		// depth buffer intialized as 1.0f!
-		skyboxShader.use();
+		skyboxShader->use();
 		glBindVertexArray(VAO);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
 		glDrawArrays(GL_TRIANGLES, 0, 36);

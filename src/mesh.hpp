@@ -54,10 +54,10 @@ public:
     void Draw(Shader &shader) 
     {
         // bind appropriate textures
-        unsigned int diffuseNr  = 1;
-        unsigned int specularNr = 1;
-        unsigned int normalNr   = 1;
-        unsigned int heightNr   = 1;
+        unsigned int diffuseNr  = 0;
+        unsigned int specularNr = 0;
+        unsigned int normalNr   = 0;
+        unsigned int heightNr   = 0;
 		// currently fragShader only declares 1 diffuse texture sampler...
 		// so... only diffuse#1 will be activated...
         for(unsigned int i = 0; i < textures.size(); i++)
@@ -76,12 +76,16 @@ public:
                 number = std::to_string(heightNr++); // transfer unsigned int to stream
 
             // now set the sampler to the correct texture unit
-            glUniform1i(glGetUniformLocation(shader.ID, ("material." + name + number).c_str()), i);
+            glUniform1i(glGetUniformLocation(shader.ID, ("material." + name + "[" + number + "]").c_str()), i);
             // and finally bind the texture
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }
-        
-        // draw mesh
+
+		// let the shader know if we have textures and the number of it
+		shader.setInt("material.nDiffuse", diffuseNr);
+		shader.setInt("material.nSpecular", specularNr);
+
+		// draw mesh
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);

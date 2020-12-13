@@ -41,10 +41,10 @@ public:
     // draws the model, and thus all its meshes
     void Draw(Shader &shader)
     { 
-        for(Mesh mesh : meshes)
-            mesh.Draw(shader);
-    }
-    
+		for(unsigned int i = 0; i < meshes.size(); i++)
+             meshes[i].Draw(shader);
+	}
+
 private:
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void loadModel(string const &path)
@@ -185,7 +185,7 @@ private:
     // the required info is returned as a Texture struct.
     vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName)
     {
-		stbi_set_flip_vertically_on_load(true);
+		//stbi_set_flip_vertically_on_load(false);
         vector<Texture> textures;
         for(unsigned int i = 0; i < mat->GetTextureCount(type); i++)
         {
