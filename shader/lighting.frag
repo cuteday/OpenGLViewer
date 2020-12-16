@@ -8,17 +8,19 @@ out vec4 FragColor;
 in VS_OUT{
 	vec2 TexCoords;
 	vec3 Normal;
-	vec3 Normal0;
 	vec3 FragPos;
 	vec4 Color;
+	mat3 TBN;
 } fs_in;
 
 struct Material{		
 	sampler2D diffuse[NR_MAX_TEXTURES];
 	sampler2D specular[NR_MAX_TEXTURES];		// currently we dont have texture with specular albedo!...
+	sampler2D normal[NR_MAX_TEXTURES];
 	float shininess;
 	int nDiffuse;
 	int nSpecular;
+	int nNormal;
 };
 
 struct DirLight{

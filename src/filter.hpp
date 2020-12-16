@@ -8,7 +8,7 @@
 class Filter{
 public: 
 
-	Filter(unsigned int _width, unsigned int _height):
+	Filter(unsigned int _width, unsigned int _height, bool _gamma):
 		width(_width), height(_height){
 #ifdef __APPLE__	// retina
 		width *= 2, height *= 2;

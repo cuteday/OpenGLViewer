@@ -75,7 +75,7 @@ public:
 	static unsigned int loadCubeMap(vector<string> faces, string path){
 		int width, height, nrChannels;
 		unsigned int _texture;
-		//stbi_set_flip_vertically_on_load(false);// the cubemap texture need top-down image, different from other textures!
+		//stbi_set_flip_vertically_on_load(false); // the cubemap texture need top-down image, different from other textures!
 		glGenTextures(1, &_texture);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
 		for (int i = 0; i < faces.size();i++){
@@ -83,7 +83,7 @@ public:
 			unsigned char *data = stbi_load((path + faces[i]).c_str(), &width, &height, &nrChannels, 0);
 			if (data){
 				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
-							0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+							0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         	}
 			else{
 				std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;

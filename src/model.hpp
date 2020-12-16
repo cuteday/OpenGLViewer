@@ -12,6 +12,7 @@
 #include "shader.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "math.hpp"
 
 #include <string>
 #include <fstream>
@@ -21,7 +22,7 @@
 #include <vector>
 using namespace std;
 
-unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false);
+unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = true);
 
 class Model 
 {
@@ -29,12 +30,15 @@ public:
     // model data 
     vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
     vector<Mesh>    meshes;
-    string directory;
-    bool gammaCorrection;
+	glm::mat4 model_transform;
+	string directory;
+	bool gammaCorrection;
 
     // constructor, expects a filepath to a 3D model.
-    Model(string const &path, bool gamma = false) : gammaCorrection(gamma)
-    {
+    Model(string const &path, 
+		glm::mat4 transform = glm::mat4(1.0f),
+		bool gamma = false) : 
+			gammaCorrection(gamma), model_transform(transform){
         loadModel(path);
     }
 
@@ -51,7 +55,13 @@ private:
     {
         // read file via ASSIMP
         Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+        const aiScene* scene = importer.ReadFile(path, 
+							aiProcess_Triangulate  			// all the meshes be converted to tri-mesh.
+							| aiProcess_GenSmoothNormals  	// generate normals if not existing (interpolate?)
+							| aiProcess_FlipUVs  			// if turned on, we dont have to manually filp textures when read them
+							| aiProcess_CalcTangentSpace 	// 
+							| aiProcess_PreTransformVertices	// every node / object has a transform matrix, apply it to all vertices in this node
+							);	 
         // check for errors
         if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
         {
@@ -66,10 +76,12 @@ private:
     }
 
     // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
-    void processNode(aiNode *node, const aiScene *scene)
+    void processNode(aiNode *node, const aiScene *scene, glm::mat4 prev_transform = glm::mat4(1.0f))
     {
-        // process each mesh located at the current node
-        for(unsigned int i = 0; i < node->mNumMeshes; i++)
+		glm::mat4 transform = Math::to_glm_mat4(node->mTransformation);
+
+		// process each mesh located at the current node
+		for(unsigned int i = 0; i < node->mNumMeshes; i++)
         {
             // the node object only contains indices to index the actual objects in the scene. 
             // the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
@@ -79,10 +91,9 @@ private:
         // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
         for(unsigned int i = 0; i < node->mNumChildren; i++)
         {
-            processNode(node->mChildren[i], scene);
-        }
-
-    }
+			processNode(node->mChildren[i], scene, transform * prev_transform);
+		}
+	}
 
     Mesh processMesh(aiMesh *mesh, const aiScene *scene)
     {
@@ -159,9 +170,6 @@ private:
 			// we assume a convention for sampler names in the shaders. Each diffuse texture should be named
 			// as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER. 
 			// Same applies to other texture as the following list summarizes:
-			// diffuse: texture_diffuseN
-			// specular: texture_specularN
-			// normal: texture_normalN
 
 			// 1. diffuse maps
 			vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
@@ -206,8 +214,10 @@ private:
             if(!skip)
             {   // if texture hasn't been loaded already, load it
                 Texture texture;
-                texture.id = TextureFromFile(str.C_Str(), this->directory);
-                texture.type = typeName;
+				// for nearly all the textures are created in SRGB space 
+				bool with_gamma = type == aiTextureType::aiTextureType_DIFFUSE;
+				texture.id = TextureFromFile(str.C_Str(), this->directory, with_gamma);
+				texture.type = typeName;
                 texture.path = str.C_Str();
                 textures.push_back(texture);
                 textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
@@ -230,16 +240,22 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
     unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
     if (data)
     {
-        GLenum format;
-        if (nrComponents == 1)
+        GLenum format, internel_format;
+        if (nrComponents == 1){
             format = GL_RED;
-        else if (nrComponents == 3)
+			internel_format = GL_RED;
+		}
+		else if (nrComponents == 3){
             format = GL_RGB;
-        else if (nrComponents == 4)
+			internel_format = gamma ? GL_SRGB : GL_RGB;
+		}
+		else if (nrComponents == 4){
             format = GL_RGBA;
+			internel_format = gamma ? GL_SRGB_ALPHA : GL_RGBA;
+		}
 
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, internel_format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

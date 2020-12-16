@@ -8,7 +8,7 @@ add_definitions(-std=c++11)
 set(CXX_FLAGS "-std=c++11")
 set(CMAKE_CXX_FLAGS_DEBUG   "-O0" )
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG " )
-set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "Debug")
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/bin)
 set(LIBRARY_OUTPUT_PATH    ${PROJECT_SOURCE_DIR}/build/lib)
@@ -16,7 +16,6 @@ set(LIBRARY_OUTPUT_PATH    ${PROJECT_SOURCE_DIR}/build/lib)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)  
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-
 
 add_compile_options(
 	-Wno-invalid-offsetof
@@ -45,7 +44,8 @@ set(SRC_LIST
 	${PROJECT_SOURCE_DIR}/src/filter.hpp 
 	${PROJECT_SOURCE_DIR}/src/skybox.hpp 
 	${PROJECT_SOURCE_DIR}/src/msaa.hpp 
-	${PROJECT_SOURCE_DIR}/src/light.hpp )
+	${PROJECT_SOURCE_DIR}/src/light.hpp 
+	${PROJECT_SOURCE_DIR}/src/math.hpp )
 
 set(TARGET 
 	viewer)

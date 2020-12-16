@@ -15,9 +15,10 @@
 #include <iostream>
 #include <string>
 
-const bool ENABLE_FILTER = 0;
-const bool ENABLE_SKYBOX = 1;
-const bool ENABLE_MSAA = 1;
+bool ENABLE_FILTER = 1;
+bool ENABLE_SKYBOX = 1;
+bool ENABLE_MSAA = 1;
+bool ENABLE_GAMMA = 1;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -34,16 +35,18 @@ const char *PATH_SHADER_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shad
 const char *PATH_SHADER_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/lighting.frag";
 const char *PATH_SHADER_NORMAL_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/normal.frag";
 const char *PATH_SHADER_SCREEN_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/filter.vert";
-const char *PATH_SHADER_SCREEN_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/kernel.frag";
+const char *PATH_SHADER_SCREEN_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/filter.frag";
 const char *PATH_SHADER_SKYBOX_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/skybox.vert";
 const char *PATH_SHADER_SKYBOX_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/skybox.frag";
 
 const char *PATH_TEXTURE_SKYBOX = "/Users/cappu/Public/Projects/OpenGLViewer/texture/skybox/";
 
+const char *PATH_MODEL_NOEL = "/Users/cappu/Public/Projects/OpenGLViewer/model/3D_fanart_Noel_From_Sora_no_Method.blend";
 const char *PATH_MODEL_NANOSUIT = "/Users/cappu/Public/Projects/OpenGLViewer/model/nanosuit/nanosuit.obj";
-const char *PATH_MODEL_ROBOT = "/Users/cappu/Public/Projects/OpenGLViewer/model/halloween-little-witch/source/03/03.obj";
+const char *PATH_MODEL_LITTLEWITCH = "/Users/cappu/Public/Projects/OpenGLViewer/model/halloween-little-witch/source/03/03.obj";
 const char *PATH_MODEL_SCENENET = "/Users/cappu/Public/Projects/OpenGLViewer/model/SceneNetData/1Office/66office_scene.obj";
 const char *PATH_MODEL_REPLICA = "/Users/cappu/Public/Projects/OpenGLViewer/model/Replica/apartment_0/mesh.ply";
+
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -96,11 +99,13 @@ int main(){
 	// glEnable(GL_CULL_FACE);	// face culling
 	// glCullFace(GL_BACK);		// this is the default
 
-	Model ourModel(PATH_MODEL_SCENENET);
+	Model ourModel(PATH_MODEL_LITTLEWITCH);
 	Shader shader(PATH_SHADER_VERTEX, PATH_SHADER_FRAG);
-	
+	if(ENABLE_GAMMA){
+		ENABLE_FILTER = 1;	// we need to do gamma correction in the last screen frame buffer.
+	}
 	if(ENABLE_FILTER){
-		filter = new Filter(SCR_WIDTH, SCR_HEIGHT);
+		filter = new Filter(SCR_WIDTH, SCR_HEIGHT, ENABLE_GAMMA);
 		screenShader = new Shader(PATH_SHADER_SCREEN_VERTEX, PATH_SHADER_SCREEN_FRAG);
 	}
 	if(ENABLE_SKYBOX){
@@ -137,7 +142,7 @@ int main(){
 		// view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.8f));	
+		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.18f));	
 
 		shader.use();
 		shader.setVec3("viewPos", camera.Position);
