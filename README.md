@@ -1,14 +1,29 @@
-# OpenGLViewer
+# OpenGL Viewer
 
-An OpenGL tool reads 3D scenes, for realtime interactive FPS camera, sampling camera views at given camera positions, lignting configurations, etc.
+An OpenGL tool reads 3D scenes and viewing.
 
-For learning purpose. Tested on OS X only.
+This is a unfinished naive work, with nothing useful but for learning purpose ✧(≖ ◡ ≖✿)\
+Tested on OS X only.
 
-### Dependency
-Assimp
+## Render Pipeline (Currently)
+1 Draw model and skybox (with optional HDR rendering) \
+2 MSAA framebuffer \
+3 Post-process framebuffer (with optional gamma-correction, user-defined image filter, tone mapping, etc.)
 
-GLFW
+## Dependencies
+[Assimp](https://github.com/assimp/assimp) \
+[GLFW]() \
+[GLAD](https://github.com/Dav1dde/glad) \
+[GLM]()
 
-GLAD
-
-GLM
+## Usage
+Install dependencies: assimp (GLFW and GLM already included in submodules)\
+Replace the machine-dependent [GLAD file](https://glad.dav1d.de/) `glad.c` and `glad.h` in `/include/` 
+~~~
+git submodule --init 
+mkdir build
+cd build
+cmake ..
+make
+~~~
+*[TO BE UPDATED]*
