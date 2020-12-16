@@ -7,12 +7,12 @@
 
 class MultiSample{
 public:
-	MultiSample(unsigned int _width, unsigned int _height, unsigned int _samples = 4):
+	MultiSample(unsigned int _width, unsigned int _height, unsigned int _samples = 4, bool HDR = false):
 			width(_width), height(_height), samples(_samples){
 #ifdef __APPLE__
 		width *= 2, height *= 2;
 #endif
-		setup();
+		generateMSFramebuffer(width, height, &framebuffer, &msTextureColor, &msRBO, samples, HDR);
 	}
 
 	static void generateMSFramebuffer(
@@ -21,15 +21,17 @@ public:
 		unsigned int *framebuffer,
 		unsigned int *textureColorBuffer,
 		unsigned int *RBO,
-		unsigned int samples
+		unsigned int samples = 4,
+		bool HDR = false
 	){
+		GLenum textureColorFormat = HDR ? GL_RGB16F : GL_RGB;
 
 		glGenFramebuffers(1, framebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, *framebuffer);
 
 		glGenTextures(1, textureColorBuffer);
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, *textureColorBuffer);
-		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGB, width, height, GL_TRUE);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, textureColorFormat, width, height, GL_TRUE);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, *textureColorBuffer, 0);
 
 		glGenRenderbuffers(1, RBO);
@@ -59,8 +61,4 @@ public:
 private:
 	unsigned int width, height, samples;
 	unsigned int framebuffer, msTextureColor, msRBO;
-
-	void setup(){
-		generateMSFramebuffer(width, height, &framebuffer, &msTextureColor, &msRBO, samples);
-	}
 };

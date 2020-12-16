@@ -8,8 +8,8 @@
 class Filter{
 public: 
 
-	Filter(unsigned int _width, unsigned int _height, bool _gamma):
-		width(_width), height(_height){
+	Filter(unsigned int _width, unsigned int _height, bool _gamma, bool _HDR = false):
+		width(_width), height(_height), gamma(_gamma), HDR(_HDR){
 #ifdef __APPLE__	// retina
 		width *= 2, height *= 2;
 #endif
@@ -23,6 +23,8 @@ public:
         glClear(GL_COLOR_BUFFER_BIT);
 
 		screenShader->use();
+		screenShader->setBool("enableGamma", gamma);
+		screenShader->setBool("enableHDR", HDR);
 		glBindVertexArray(quadVAO);
 		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -37,14 +39,17 @@ public:
 					unsigned int height, 
 					unsigned int *framebuffer, 
 					unsigned int *textureColorbuffer, 
-					unsigned int *RBO){
+					unsigned int *RBO,
+					bool HDR = false){
+		GLenum textureColorFormat = HDR ? GL_RGB16F : GL_RGB;
+
 		// setup framebuffer and texture attachment
 		glGenFramebuffers(1, framebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, *framebuffer);
 		// color attachment
 		glGenTextures(1, textureColorbuffer);
 		glBindTexture(GL_TEXTURE_2D, *textureColorbuffer);	// dont need active/ set texunit since only 1 texture
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, textureColorFormat, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// filter kernel border padding 
@@ -63,6 +68,7 @@ public:
 	unsigned int getFrameBuffer() { return framebuffer; }
 
 private:
+	bool gamma, HDR;
 	unsigned int width, height;
 	unsigned int quadVAO, quadVBO;
 	unsigned int framebuffer, textureColorbuffer, RBO;

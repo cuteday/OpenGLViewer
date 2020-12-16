@@ -5,3 +5,18 @@
  * 	2 load and bind different textures (diffuse, specular, normal, roughness, cubemap, etc)
  *  3 bind texture according to gamma correction settings 
  */
+
+class TextureLoader{
+public:
+	TextureLoader(){
+
+	}
+
+	void LoadCubemap(){
+
+	}
+
+	
+private:
+
+};

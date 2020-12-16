@@ -19,6 +19,7 @@ bool ENABLE_FILTER = 1;
 bool ENABLE_SKYBOX = 1;
 bool ENABLE_MSAA = 1;
 bool ENABLE_GAMMA = 1;
+bool ENABLE_HDR = 0;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -101,11 +102,14 @@ int main(){
 
 	Model ourModel(PATH_MODEL_LITTLEWITCH);
 	Shader shader(PATH_SHADER_VERTEX, PATH_SHADER_FRAG);
-	if(ENABLE_GAMMA){
-		ENABLE_FILTER = 1;	// we need to do gamma correction in the last screen frame buffer.
+	if(ENABLE_GAMMA || ENABLE_HDR){
+		// we need to do gamma correction and tone mapping in the last screen frame buffer.
+		// also, if HDR enabled, the HDR render buffer, along with all consequent frame buffers,
+		// must equip with floating color buffer GL_RGBA_16/32F.
+		ENABLE_FILTER = 1;	
 	}
 	if(ENABLE_FILTER){
-		filter = new Filter(SCR_WIDTH, SCR_HEIGHT, ENABLE_GAMMA);
+		filter = new Filter(SCR_WIDTH, SCR_HEIGHT, ENABLE_GAMMA, ENABLE_HDR);
 		screenShader = new Shader(PATH_SHADER_SCREEN_VERTEX, PATH_SHADER_SCREEN_FRAG);
 	}
 	if(ENABLE_SKYBOX){
@@ -114,7 +118,7 @@ int main(){
 	}
 	if(ENABLE_MSAA){
 		glEnable(GL_MULTISAMPLE);
-		multiSample = new MultiSample(SCR_WIDTH, SCR_HEIGHT, 4);
+		multiSample = new MultiSample(SCR_WIDTH, SCR_HEIGHT, 4, ENABLE_HDR);
 	}
 
 	shader.use();
@@ -214,7 +218,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 
 void setLighting(Shader shader){
 	vector<PointLight*> lights{
-		new PointLight(glm::vec3(0.0, 6.0, 0.0)),
+		new PointLight(glm::vec3(0.0, 5.0, 0.0)),
 		new PointLight(glm::vec3(5.0, 0.0, 0.0)),
 		new PointLight(glm::vec3(0.0, 0.0, 5.0)),
 	};
