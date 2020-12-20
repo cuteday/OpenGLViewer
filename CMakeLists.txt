@@ -45,7 +45,8 @@ set(SRC_LIST
 	${PROJECT_SOURCE_DIR}/src/skybox.hpp 
 	${PROJECT_SOURCE_DIR}/src/msaa.hpp 
 	${PROJECT_SOURCE_DIR}/src/light.hpp 
-	${PROJECT_SOURCE_DIR}/src/math.hpp )
+	${PROJECT_SOURCE_DIR}/src/math.hpp 
+	${PROJECT_SOURCE_DIR}/src/function.cpp )
 
 set(TARGET 
 	viewer)

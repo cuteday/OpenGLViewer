@@ -25,9 +25,9 @@ class PointLight : public Light{
 public:
 	PointLight(
 		glm::vec3 position = glm::vec3(0.0f),
-		glm::vec3 ambient = glm::vec3(1.5f),
-		glm::vec3 diffuse = glm::vec3(1.8f),
-		glm::vec3 specular = glm::vec3(3.0f),
+		glm::vec3 ambient = glm::vec3(200),
+		glm::vec3 diffuse = glm::vec3(200),
+		glm::vec3 specular = glm::vec3(200),
 		float constant = 1.0f, 
 		float linear = 0.09f,
 		float quadratic = 0.032f

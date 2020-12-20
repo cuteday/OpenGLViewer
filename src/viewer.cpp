@@ -17,9 +17,10 @@
 
 bool ENABLE_FILTER = 1;
 bool ENABLE_SKYBOX = 1;
-bool ENABLE_MSAA = 1;
+bool ENABLE_MSAA = 0;
 bool ENABLE_GAMMA = 1;
-bool ENABLE_HDR = 0;
+bool ENABLE_HDR = 1;
+bool ENABLE_BLOOM = 1;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -32,13 +33,6 @@ void setLighting(Shader shader);
 const unsigned int SCR_WIDTH = 1080;
 const unsigned int SCR_HEIGHT = 720;
 
-const char *PATH_SHADER_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/lighting.vert";
-const char *PATH_SHADER_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/lighting.frag";
-const char *PATH_SHADER_NORMAL_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/normal.frag";
-const char *PATH_SHADER_SCREEN_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/filter.vert";
-const char *PATH_SHADER_SCREEN_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/filter.frag";
-const char *PATH_SHADER_SKYBOX_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/skybox.vert";
-const char *PATH_SHADER_SKYBOX_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/skybox.frag";
 
 const char *PATH_TEXTURE_SKYBOX = "/Users/cappu/Public/Projects/OpenGLViewer/texture/skybox/";
 
@@ -47,7 +41,6 @@ const char *PATH_MODEL_NANOSUIT = "/Users/cappu/Public/Projects/OpenGLViewer/mod
 const char *PATH_MODEL_LITTLEWITCH = "/Users/cappu/Public/Projects/OpenGLViewer/model/halloween-little-witch/source/03/03.obj";
 const char *PATH_MODEL_SCENENET = "/Users/cappu/Public/Projects/OpenGLViewer/model/SceneNetData/1Office/66office_scene.obj";
 const char *PATH_MODEL_REPLICA = "/Users/cappu/Public/Projects/OpenGLViewer/model/Replica/apartment_0/mesh.ply";
-
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -61,7 +54,7 @@ float lastFrame = 0.0f;
 
 Filter *filter;
 Skybox *skybox;
-Shader *skyboxShader, *screenShader;
+Shader *skyboxShader, *screenShader, *gaussianShader;
 MultiSample *multiSample;
 
 int main(){
@@ -102,14 +95,14 @@ int main(){
 
 	Model ourModel(PATH_MODEL_LITTLEWITCH);
 	Shader shader(PATH_SHADER_VERTEX, PATH_SHADER_FRAG);
-	if(ENABLE_GAMMA || ENABLE_HDR){
+	if(ENABLE_GAMMA || ENABLE_HDR || ENABLE_BLOOM){
 		// we need to do gamma correction and tone mapping in the last screen frame buffer.
 		// also, if HDR enabled, the HDR render buffer, along with all consequent frame buffers,
 		// must equip with floating color buffer GL_RGBA_16/32F.
 		ENABLE_FILTER = 1;	
 	}
 	if(ENABLE_FILTER){
-		filter = new Filter(SCR_WIDTH, SCR_HEIGHT, ENABLE_GAMMA, ENABLE_HDR);
+		filter = new Filter(SCR_WIDTH, SCR_HEIGHT, ENABLE_GAMMA, ENABLE_HDR, ENABLE_BLOOM);
 		screenShader = new Shader(PATH_SHADER_SCREEN_VERTEX, PATH_SHADER_SCREEN_FRAG);
 	}
 	if(ENABLE_SKYBOX){
@@ -139,7 +132,7 @@ int main(){
 			filter->toScreenTexture();			// switch framebuffer to screen texture... 
 
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		// glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 
@@ -163,7 +156,7 @@ int main(){
 		}
 
 		if(ENABLE_MSAA)		
-			multiSample->Draw(ENABLE_FILTER ? filter->getFrameBuffer() : 0);
+			multiSample->Draw(ENABLE_FILTER ? filter->getFramebuffer() : 0);
 		if (ENABLE_FILTER)
 			filter->Draw(screenShader);
 
@@ -218,9 +211,9 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 
 void setLighting(Shader shader){
 	vector<PointLight*> lights{
-		new PointLight(glm::vec3(0.0, 5.0, 0.0)),
-		new PointLight(glm::vec3(5.0, 0.0, 0.0)),
-		new PointLight(glm::vec3(0.0, 0.0, 5.0)),
+		new PointLight(glm::vec3(0.0, 25.0, 0.0)),
+		// new PointLight(glm::vec3(5.0, 0.0, 0.0)),
+		// new PointLight(glm::vec3(0.0, 0.0, 5.0)),
 	};
 
 	for (int i = 0; i < lights.size(); i++)

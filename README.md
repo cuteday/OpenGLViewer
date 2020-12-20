@@ -2,8 +2,8 @@
 
 An OpenGL tool reads 3D scenes and viewing.
 
-This is a unfinished naive work, with nothing useful but for learning purpose ✧(≖ ◡ ≖✿)\
-Tested on OS X only.
+This is an unfinished naive work, with nothing useful but for learning purpose ✧(≖ ◡ ≖✿)\
+*Tested on OS X only*
 
 ## Render Pipeline (Currently)
 1 Draw model and skybox (with optional HDR rendering) \

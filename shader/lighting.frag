@@ -1,6 +1,6 @@
 #version 330 core
-// gl_FragCoord
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;		// to color attachment 0
+layout (location = 1) out vec4 BrightColor;		// to color attachment 1
 
 #define NR_POINT_LIGHTS 3
 #define NR_MAX_TEXTURES 3
@@ -69,6 +69,11 @@ void main()
 	FragColor = vec4(result, 1.0);
 	// FragColor = Color;
     // FragColor = texture(texture_diffuse1, TexCoords);
+
+	float intensity = dot(vec3(0.2126, 0.7152, 0.0722), result);
+	if(intensity > 1.0)
+		BrightColor = vec4(result, 1.0);
+	else BrightColor = vec4(vec3(0.0), 1.0);
 }
 
 // calculates the color when using a point light.

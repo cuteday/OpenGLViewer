@@ -4,12 +4,65 @@
 #include <glm/glm.hpp>
 
 #include "shader.hpp"
+#include "function.hpp"
+
+class Gaussian{
+public:
+	Gaussian(unsigned int _width, unsigned int _height):
+		width(_width), height(_height){
+		setup();
+		shader = new Shader(PATH_SHADER_SCREEN_VERTEX, PATH_SHADER_GAUSSIAN);
+	}
+
+	void Draw(unsigned int initialTexture){
+		const int nPass = 10;
+		shader->use();
+		for (int i = 0; i < nPass; i++){
+			bool horizontal = i % 2;
+			glBindFramebuffer(GL_FRAMEBUFFER, FBO[horizontal]);
+			shader->setBool("horizontal", horizontal);
+			glBindTexture(GL_TEXTURE_2D, i > 0 ? colorbuffer[!horizontal] : initialTexture);
+			renderQuad();
+		}
+	}
+
+	unsigned int getColorbuffer() { return colorbuffer[1]; }
+
+private:
+	unsigned int FBO[2], colorbuffer[2];
+	unsigned int width, height;
+	Shader *shader;
+	unsigned int RBO[2];
+
+	void setup(){
+		glGenFramebuffers(2, FBO);
+		glGenTextures(2, colorbuffer);
+		for (int i = 0; i < 2; i++){
+			glBindFramebuffer(GL_FRAMEBUFFER, FBO[i]);
+			glBindTexture(GL_TEXTURE_2D, colorbuffer[i]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// filter kernel border padding 
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorbuffer[i], 0);
+		    
+			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            	std::cout << "ERROR::GAUSSIAN::Framebuffer not complete" << std::endl;
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+};
 
 class Filter{
 public: 
 
-	Filter(unsigned int _width, unsigned int _height, bool _gamma, bool _HDR = false):
-		width(_width), height(_height), gamma(_gamma), HDR(_HDR){
+	Filter(unsigned int _width, 
+			unsigned int _height, 
+			bool _gamma = true, 
+			bool _HDR = false,
+			bool _bloom = false):
+		width(_width), height(_height), gamma(_gamma), HDR(_HDR), bloom(_bloom){
 #ifdef __APPLE__	// retina
 		width *= 2, height *= 2;
 #endif
@@ -17,84 +70,60 @@ public:
 	}
 
 	void Draw(Shader *screenShader){
+		if(bloom){
+			gaussian->Draw(bloomColorbuffer);
+		}
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
         glClear(GL_COLOR_BUFFER_BIT);
 
 		screenShader->use();
 		screenShader->setBool("enableGamma", gamma);
 		screenShader->setBool("enableHDR", HDR);
-		glBindVertexArray(quadVAO);
-		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		screenShader->setBool("enableBloom", bloom);
+		screenShader->setInt("screenTexture", 0);
+		screenShader->setInt("bloomColor", 1);
+
+		glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, gaussian->getColorbuffer());
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer );
+		if(bloom){
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, gaussian->getColorbuffer());
+		}
+		renderQuad();
+		glActiveTexture(GL_TEXTURE0);
 	}
 
 	void toScreenTexture(){
+		glClearColor(0.0, 0.0, 0.0, 1.0);
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	}
 
-	static void generateFramebuffer(
-					unsigned int width, 
-					unsigned int height, 
-					unsigned int *framebuffer, 
-					unsigned int *textureColorbuffer, 
-					unsigned int *RBO,
-					bool HDR = false){
-		GLenum textureColorFormat = HDR ? GL_RGB16F : GL_RGB;
-
-		// setup framebuffer and texture attachment
-		glGenFramebuffers(1, framebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, *framebuffer);
-		// color attachment
-		glGenTextures(1, textureColorbuffer);
-		glBindTexture(GL_TEXTURE_2D, *textureColorbuffer);	// dont need active/ set texunit since only 1 texture
-		glTexImage2D(GL_TEXTURE_2D, 0, textureColorFormat, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// filter kernel border padding 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *textureColorbuffer, 0);
-		// stencil and depth attachment
-		glGenRenderbuffers(1, RBO);
-		glBindRenderbuffer(GL_RENDERBUFFER, *RBO);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, *RBO);
-	    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        	std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-
-	unsigned int getFrameBuffer() { return framebuffer; }
+	unsigned int getFramebuffer() { return framebuffer; }
 
 private:
-	bool gamma, HDR;
+	bool gamma, HDR, bloom;
 	unsigned int width, height;
 	unsigned int quadVAO, quadVBO;
 	unsigned int framebuffer, textureColorbuffer, RBO;
+	unsigned int bloomColorbuffer;
+	Gaussian *gaussian;
 
 	void setup(){
-		float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-			// positions   // texCoords
-			-1.0f,  1.0f,  0.0f, 1.0f,
-			-1.0f, -1.0f,  0.0f, 0.0f,
-			1.0f, -1.0f,  1.0f, 0.0f,
-			-1.0f,  1.0f,  0.0f, 1.0f,
-			1.0f, -1.0f,  1.0f, 0.0f,
-			1.0f,  1.0f,  1.0f, 1.0f
-		};
-
-		glGenVertexArrays(1, &quadVAO);
-		glGenBuffers(1, &quadVBO);
-		
-		glBindVertexArray(quadVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-
-		generateFramebuffer(width, height, &framebuffer, &textureColorbuffer, &RBO);
+		unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+		generateFramebuffer(width, height, &framebuffer, &textureColorbuffer, &RBO, true);
+		if(bloom){	// we bind bloom color texture as 2nd color texture attachment
+			gaussian = new Gaussian(width, height);
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+			generateColorTexture(&bloomColorbuffer, width, height, true);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bloomColorbuffer, 0);
+			glDrawBuffers(2, attachments);
+		}
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 };
+

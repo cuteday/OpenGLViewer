@@ -1,15 +1,24 @@
 #version 330 core
+const float gamma = 2.2;
+const float exposure = 1.0;
 
 in vec2 TexCoords;
+
 uniform bool enableHDR;
 uniform bool enableGamma;
+uniform bool enableBloom;
+
 uniform sampler2D screenTexture;
-const float gamma = 2.2;
-const float exposure = 1.5;
+uniform sampler2D bloomColor;
+
 out vec4 FragColor;
 
 void main(){
 	FragColor = texture(screenTexture, TexCoords);
+	if(enableBloom){
+		// simply add -> blend
+		FragColor.rgb += texture(bloomColor, TexCoords).rgb;	
+	}
 	if(enableHDR){
 		// tone mapping
 		//FragColor.rgb = FragColor.rgb / (FragColor.rgb + vec3(1.0));	// Reinhard

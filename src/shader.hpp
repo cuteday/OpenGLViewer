@@ -8,6 +8,15 @@
 #include <sstream>
 #include <iostream>
 
+const char *PATH_SHADER_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/lighting.vert";
+const char *PATH_SHADER_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/lighting.frag";
+const char *PATH_SHADER_NORMAL_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/normal.frag";
+const char *PATH_SHADER_SCREEN_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/screen.vert";
+const char *PATH_SHADER_SCREEN_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/filter.frag";
+const char *PATH_SHADER_GAUSSIAN = "/Users/cappu/Public/Projects/OpenGLViewer/shader/gaussian.frag";
+const char *PATH_SHADER_SKYBOX_VERTEX = "/Users/cappu/Public/Projects/OpenGLViewer/shader/skybox.vert";
+const char *PATH_SHADER_SKYBOX_FRAG = "/Users/cappu/Public/Projects/OpenGLViewer/shader/skybox.frag";
+
 class Shader
 {
 public:
