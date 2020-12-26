@@ -32,17 +32,17 @@ public:
     vector<Mesh>    meshes;
 	glm::mat4 model_transform;
 	string directory;
-	bool gammaCorrection;
+	bool texGammaCorrection;
 
     // constructor, expects a filepath to a 3D model.
     Model(string const &path, 
 		glm::mat4 transform = glm::mat4(1.0f),
-		bool gamma = false) : 
-			gammaCorrection(gamma), model_transform(transform){
+		bool gamma = true) : 
+			texGammaCorrection(gamma), model_transform(transform){
         loadModel(path);
-    }
+	}
 
-    // draws the model, and thus all its meshes
+	// draws the model, and thus all its meshes
     void Draw(Shader &shader)
     { 
 		for(unsigned int i = 0; i < meshes.size(); i++)
@@ -54,14 +54,15 @@ private:
     void loadModel(string const &path)
     {
         // read file via ASSIMP
-        Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(path, 
+		cout << "loading model "<< path << endl;
+		Assimp::Importer importer;
+		const aiScene* scene = importer.ReadFile(path, 
 							aiProcess_Triangulate  			// all the meshes be converted to tri-mesh.
 							| aiProcess_GenSmoothNormals  	// generate normals if not existing (interpolate?)
 							| aiProcess_FlipUVs  			// if turned on, we dont have to manually filp textures when read them
 							| aiProcess_CalcTangentSpace 	// 
 							| aiProcess_PreTransformVertices	// every node / object has a transform matrix, apply it to all vertices in this node
-							);	 
+							); 
         // check for errors
         if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
         {
@@ -88,8 +89,8 @@ private:
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             meshes.push_back(processMesh(mesh, scene));
         }
-        // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
-        for(unsigned int i = 0; i < node->mNumChildren; i++)
+		// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
+		for(unsigned int i = 0; i < node->mNumChildren; i++)
         {
 			processNode(node->mChildren[i], scene, transform * prev_transform);
 		}
@@ -154,6 +155,8 @@ private:
 
             vertices.push_back(vertex);
         }
+
+		// cout << "NumFaces: " << mesh->mNumFaces <<endl;
         // now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
         for(unsigned int i = 0; i < mesh->mNumFaces; i++)
         {
@@ -163,6 +166,7 @@ private:
                 indices.push_back(face.mIndices[j]);        
         }
 
+		// cout << "MatIndex: " << mesh->mMaterialIndex<<endl;
 		if(mesh->mMaterialIndex >= 0){ 			// if mesh has material
 			// these materials apply to all vertices in this Mesh node
 			// process materials
@@ -184,12 +188,12 @@ private:
 			std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
 			textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());	
 		}
-
         // return a mesh object created from the extracted mesh data
-        return Mesh(vertices, indices, textures);
-    }
+        Mesh meshr = Mesh(vertices, indices, textures);
+		return meshr;
+	}
 
-    // checks all material textures of a given type and loads the textures if they're not loaded yet.
+	// checks all material textures of a given type and loads the textures if they're not loaded yet.
     // the required info is returned as a Texture struct.
     vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName)
     {
@@ -215,7 +219,7 @@ private:
             {   // if texture hasn't been loaded already, load it
                 Texture texture;
 				// for nearly all the textures are created in SRGB space 
-				bool with_gamma = type == aiTextureType::aiTextureType_DIFFUSE;
+				bool with_gamma = (type == aiTextureType::aiTextureType_DIFFUSE) && texGammaCorrection;
 				texture.id = TextureFromFile(str.C_Str(), this->directory, with_gamma);
 				texture.type = typeName;
                 texture.path = str.C_Str();

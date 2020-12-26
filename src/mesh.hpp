@@ -49,8 +49,9 @@ public:
         this->textures = textures;
 		this->transform = transform;
 		// now that we have all the required data, set the vertex buffers and its attribute pointers.
+
 		setupMesh();
-    }
+	}
 
     // render the mesh
     void Draw(Shader &shader) 
@@ -110,7 +111,7 @@ private:
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
 
-        glBindVertexArray(VAO);
+		glBindVertexArray(VAO);
         // load data into vertex buffers
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         // A great thing about structs is that their memory layout is sequential for all its items.

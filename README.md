@@ -8,7 +8,7 @@ This is an unfinished naive work, with nothing useful but for learning purpose â
 ## Render Pipeline (Currently)
 1 Draw model and skybox (with optional HDR rendering) \
 2 MSAA framebuffer \
-3 Post-process framebuffer (with optional gamma-correction, user-defined image filter, tone mapping, etc.)
+3 Post-process framebuffer (with optional gamma-correction, user-defined image filter, tone mapping, blooming, etc.)
 
 ## Dependencies
 [Assimp](https://github.com/assimp/assimp) \

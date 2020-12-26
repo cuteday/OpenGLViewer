@@ -2,10 +2,9 @@ cmake_minimum_required ( VERSION 3.1)
 project                ( OpenGLViewer )          
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1) 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-add_definitions(-std=c++11)
-set(CXX_FLAGS "-std=c++11")
+add_definitions(-std=c++17)
+set(CXX_FLAGS "-std=c++17")
 set(CMAKE_CXX_FLAGS_DEBUG   "-O0" )
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG " )
 set(CMAKE_BUILD_TYPE "Debug")
@@ -46,7 +45,8 @@ set(SRC_LIST
 	${PROJECT_SOURCE_DIR}/src/msaa.hpp 
 	${PROJECT_SOURCE_DIR}/src/light.hpp 
 	${PROJECT_SOURCE_DIR}/src/math.hpp 
-	${PROJECT_SOURCE_DIR}/src/function.cpp )
+	${PROJECT_SOURCE_DIR}/src/function.cpp 
+	${PROJECT_SOURCE_DIR}/src/importer.hpp )
 
 set(TARGET 
 	viewer)

@@ -11,6 +11,8 @@
 #include "skybox.hpp"
 #include "msaa.hpp"
 #include "light.hpp"
+#include "scene.hpp"
+#include "importer.hpp"
 
 #include <iostream>
 #include <string>
@@ -20,7 +22,7 @@ bool ENABLE_SKYBOX = 1;
 bool ENABLE_MSAA = 0;
 bool ENABLE_GAMMA = 1;
 bool ENABLE_HDR = 1;
-bool ENABLE_BLOOM = 1;
+bool ENABLE_BLOOM = 0;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -41,6 +43,7 @@ const char *PATH_MODEL_NANOSUIT = "/Users/cappu/Public/Projects/OpenGLViewer/mod
 const char *PATH_MODEL_LITTLEWITCH = "/Users/cappu/Public/Projects/OpenGLViewer/model/halloween-little-witch/source/03/03.obj";
 const char *PATH_MODEL_SCENENET = "/Users/cappu/Public/Projects/OpenGLViewer/model/SceneNetData/1Office/66office_scene.obj";
 const char *PATH_MODEL_REPLICA = "/Users/cappu/Public/Projects/OpenGLViewer/model/Replica/apartment_0/mesh.ply";
+const char *PATH_MODEL_3DFRONT = "/Users/cappu/Public/Projects/OpenGLViewer/model/3dfront/0a9c667d-033d-448c-b17c-dc55e6d3c386";
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -59,7 +62,7 @@ MultiSample *multiSample;
 
 int main(){
 
-    glfwInit();
+	glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -87,6 +90,8 @@ int main(){
     }
 
     stbi_set_flip_vertically_on_load(false);
+
+	Scene *front3d = Importer::Import3DFront(PATH_MODEL_3DFRONT);
 
     glEnable(GL_DEPTH_TEST);
 	// glEnable(GL_STENCIL_TEST);
@@ -139,14 +144,15 @@ int main(){
 		// view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.18f));	
+		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));	
 
 		shader.use();
 		shader.setVec3("viewPos", camera.Position);
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
         shader.setMat4("model", model);
-        ourModel.Draw(shader);
+        //ourModel.Draw(shader);
+		front3d->Draw(&shader);
 
 		if(ENABLE_SKYBOX){
 			skyboxShader->use();
@@ -211,7 +217,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 
 void setLighting(Shader shader){
 	vector<PointLight*> lights{
-		new PointLight(glm::vec3(0.0, 25.0, 0.0)),
+		new PointLight(glm::vec3(0.0, 90.0, 0.0)),
 		// new PointLight(glm::vec3(5.0, 0.0, 0.0)),
 		// new PointLight(glm::vec3(0.0, 0.0, 5.0)),
 	};
