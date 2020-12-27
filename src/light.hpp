@@ -25,9 +25,9 @@ class PointLight : public Light{
 public:
 	PointLight(
 		glm::vec3 position = glm::vec3(0.0f),
-		glm::vec3 ambient = glm::vec3(1000),
-		glm::vec3 diffuse = glm::vec3(1000),
-		glm::vec3 specular = glm::vec3(1000),
+		glm::vec3 ambient = glm::vec3(600),
+		glm::vec3 diffuse = glm::vec3(600),
+		glm::vec3 specular = glm::vec3(500),
 		float constant = 1.0f, 
 		float linear = 0.09f,
 		float quadratic = 0.032f
@@ -54,17 +54,14 @@ public:
 		glm::vec3 direction = glm::vec3(0.0f),
 		glm::vec3 ambient = glm::vec3(0.15f),
 		glm::vec3 diffuse = glm::vec3(0.8f),
-		glm::vec3 specular = glm::vec3(1.0f),
-		float constant = 1.0f, 
-		float linear = 0.09f,
-		float quadratic = 0.032f
+		glm::vec3 specular = glm::vec3(1.0f)
 	):direction(direction){
 		this->ambient = ambient;
 		this->diffuse = diffuse;
 		this->specular = specular;
-		this->constant = constant;
-		this->linear = linear;
-		this->quadratic = quadratic;
+		this->constant = 0;
+		this->linear = 0;
+		this->quadratic = 0;
 	}
 
 	glm::vec3 direction;

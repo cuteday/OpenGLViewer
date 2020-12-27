@@ -1,9 +1,10 @@
-#version 330 core
+#version 410 core
 layout (location = 0) out vec4 FragColor;		// to color attachment 0
 layout (location = 1) out vec4 BrightColor;		// to color attachment 1
 
-#define NR_POINT_LIGHTS 3
+#define NR_POINT_LIGHTS 1
 #define NR_MAX_TEXTURES 3
+bool enable_dirlight = false;
 
 in VS_OUT{
 	vec2 TexCoords;
@@ -43,11 +44,9 @@ struct PointLight {
     vec3 specular;
 };
 
-
-
 uniform vec3 viewPos;
 uniform DirLight dirLight;
-uniform PointLight pointLights[NR_POINT_LIGHTS];
+uniform PointLight pointLights[3];
 uniform Material material;
 
 bool blinn_phong = true;
@@ -59,16 +58,14 @@ void main()
 {   
 	vec3 norm = normalize(fs_in.Normal);
 	vec3 viewDir = normalize(viewPos - fs_in.FragPos);
-
 	vec3 result = vec3(0.0);
-    //vec3 result = CalcDirLight(dirLight, norm, viewDir);
 
+	if(enable_dirlight)
+		result = CalcDirLight(dirLight, norm, viewDir);
     for(int i = 0; i < NR_POINT_LIGHTS; i++)
         result += CalcPointLight(pointLights[i], norm, viewDir);  
 
 	FragColor = vec4(result, 1.0);
-	// FragColor = Color;
-    // FragColor = texture(texture_diffuse1, TexCoords);
 
 	float intensity = dot(vec3(0.2126, 0.7152, 0.0722), result);
 	if(intensity > 1.0)
@@ -96,21 +93,22 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 viewDir)
 
 	vec3 texDiffuse = vec3(0.0), texSpecular = vec3(0.0);
 	if(material.nDiffuse > 0){
-		for(int i = 0; i < material.nDiffuse; i++)
-			texDiffuse += vec3(texture(material.diffuse[0], fs_in.TexCoords));
+		texDiffuse += vec3(texture(material.diffuse[0], fs_in.TexCoords));
 	}
-	else texDiffuse = vec3(1.0);
+	else 
+		texDiffuse = vec3(1.0);
 	if(material.nSpecular > 0){
-		for(int i = 0; i < material.nSpecular; i++)
-			texSpecular += vec3(texture(material.specular[0], fs_in.TexCoords));
+		texSpecular += vec3(texture(material.specular[0], fs_in.TexCoords));
 	}
 	else texSpecular = vec3(0.0);
 
+	//vec3 ambient = vec3(0.10) * texDiffuse;
 	vec3 ambient = light.ambient * texDiffuse;
     vec3 diffuse = light.diffuse * diff * texDiffuse;
     vec3 specular = light.specular * spec * texSpecular;
     return (ambient + diffuse + specular) * attenuation;
 }
+
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 {
@@ -128,18 +126,19 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 
 	vec3 texDiffuse = vec3(0.0), texSpecular = vec3(0.0);
 	if(material.nDiffuse > 0){
-		for(int i = 0; i < 2; i++)
-			texDiffuse += vec3(texture(material.diffuse[0], fs_in.TexCoords));
+		texDiffuse += vec3(texture(material.diffuse[0], fs_in.TexCoords));
 	}
-	else texDiffuse = vec3(1.0);
+	else 
+		texDiffuse = vec3(1.0);
 	if(material.nSpecular > 0){
-		for(int i = 0; i < 2; i++)
-			texSpecular += vec3(texture(material.specular[0], fs_in.TexCoords));
+		texSpecular += vec3(texture(material.specular[0], fs_in.TexCoords));
 	}
 	else texSpecular = vec3(0.0);
 	
+	//vec3 ambient = vec3(0.10) * texDiffuse;
 	vec3 ambient = light.ambient * texDiffuse;
     vec3 diffuse = light.diffuse * diff * texDiffuse;
     vec3 specular = light.specular * spec * texSpecular;
     return (ambient + diffuse + specular);
 }
+

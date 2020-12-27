@@ -8,7 +8,7 @@ class Scene{
 public:
 	
 	void Draw(Shader* shader){
-		for (int i = 0;i<models.size();i++){
+		for (int i = 0;i < models.size(); i++){
 			models[i].Draw(*shader);
 		}
 	}

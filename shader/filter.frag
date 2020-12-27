@@ -1,4 +1,4 @@
-#version 330 core
+#version 410 core
 const float gamma = 2.2;
 const float exposure = 1.0;
 

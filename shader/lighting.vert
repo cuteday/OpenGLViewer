@@ -1,4 +1,4 @@
-#version 330 core
+#version 410 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoords;
@@ -16,7 +16,7 @@ out VS_OUT{
 
 // layout (std140) uniform Matrices{
 // 	mat4 projection;
-// 	mat4 view;
+// 	mat4 view; 
 // } mat;
 
 uniform mat4 model;
@@ -37,3 +37,4 @@ void main()
 	B = cross(N, T); 	// length of b = |T|*|N|*sin0 = 1
 	vs_out.TBN = mat3(T, B, N);
 }
+

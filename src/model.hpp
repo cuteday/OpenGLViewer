@@ -35,11 +35,12 @@ public:
 	bool texGammaCorrection;
 
     // constructor, expects a filepath to a 3D model.
-    Model(string const &path, 
+    Model(string const &path = "", 
 		glm::mat4 transform = glm::mat4(1.0f),
 		bool gamma = true) : 
 			texGammaCorrection(gamma), model_transform(transform){
-        loadModel(path);
+        if(path != "")
+			loadModel(path);
 	}
 
 	// draws the model, and thus all its meshes
@@ -49,33 +50,35 @@ public:
              meshes[i].Draw(shader);
 	}
 
-private:
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-    void loadModel(string const &path)
-    {
+    void loadModel(string const &path, Assimp::Importer *importer = NULL, unsigned int pFlags = -1){
         // read file via ASSIMP
 		cout << "loading model "<< path << endl;
-		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(path, 
-							aiProcess_Triangulate  			// all the meshes be converted to tri-mesh.
-							| aiProcess_GenSmoothNormals  	// generate normals if not existing (interpolate?)
-							| aiProcess_FlipUVs  			// if turned on, we dont have to manually filp textures when read them
-							| aiProcess_CalcTangentSpace 	// 
-							| aiProcess_PreTransformVertices	// every node / object has a transform matrix, apply it to all vertices in this node
-							); 
-        // check for errors
-        if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
-        {
-            cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
+		if(importer == NULL){
+			importer = new Assimp::Importer;
+			importer->SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 80);	// default ...
+		}
+		if(pFlags == -1){
+			pFlags = aiProcess_Triangulate // all the meshes be converted to tri-mesh.
+					 //| aiProcess_GenNormals  		// generate normals if not existing (vertex with face normal, to get average normal use aiProcess_GenSmoothNormals)
+					 | aiProcess_GenSmoothNormals	   // generate normals by interpolating face normals, without duplicate vertices
+					 | aiProcess_FlipUVs			   // if turned on, we dont have to manually filp textures when read them
+					 | aiProcess_CalcTangentSpace	   // Calculate tangent and bitangent vector in model space
+					 | aiProcess_PreTransformVertices; // every node / object has a transform matrix, apply it to all vertices in this node;
+		}
+		const aiScene *scene = importer->ReadFile(path, pFlags);
+		// check for errors
+        if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {	// if is Not Zero
+            cout << "ERROR::ASSIMP:: " << importer->GetErrorString() << endl;
             return;
         }
         // retrieve the directory path of the filepath
         directory = path.substr(0, path.find_last_of('/'));
-
         // process ASSIMP's root node recursively
         processNode(scene->mRootNode, scene);
     }
 
+private:
     // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
     void processNode(aiNode *node, const aiScene *scene, glm::mat4 prev_transform = glm::mat4(1.0f))
     {
@@ -120,7 +123,9 @@ private:
                 vector.y = mesh->mNormals[i].y;
                 vector.z = mesh->mNormals[i].z;
                 vertex.Normal = vector;
-            }
+            }else{
+				cout << "this vertex doesent have a normal! \n";
+			}
 			if(mesh->mColors[0]){
 				vertex.Color = glm::vec4(
 					mesh->mColors[0][i].r,

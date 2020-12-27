@@ -23,6 +23,7 @@ bool ENABLE_MSAA = 0;
 bool ENABLE_GAMMA = 1;
 bool ENABLE_HDR = 1;
 bool ENABLE_BLOOM = 0;
+bool ENABLE_NORMALVIS = 0;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -43,7 +44,7 @@ const char *PATH_MODEL_NANOSUIT = "/Users/cappu/Public/Projects/OpenGLViewer/mod
 const char *PATH_MODEL_LITTLEWITCH = "/Users/cappu/Public/Projects/OpenGLViewer/model/halloween-little-witch/source/03/03.obj";
 const char *PATH_MODEL_SCENENET = "/Users/cappu/Public/Projects/OpenGLViewer/model/SceneNetData/1Office/66office_scene.obj";
 const char *PATH_MODEL_REPLICA = "/Users/cappu/Public/Projects/OpenGLViewer/model/Replica/apartment_0/mesh.ply";
-const char *PATH_MODEL_3DFRONT = "/Users/cappu/Public/Projects/OpenGLViewer/model/3dfront/0a9c667d-033d-448c-b17c-dc55e6d3c386";
+const char *PATH_MODEL_3DFRONT = "/Users/cappu/Public/Projects/OpenGLViewer/model/3dfront/3935a020-6a26-4e14-ba45-39062fc8aed0";
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -63,8 +64,8 @@ MultiSample *multiSample;
 int main(){
 
 	glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -98,13 +99,14 @@ int main(){
 	// glEnable(GL_CULL_FACE);	// face culling
 	// glCullFace(GL_BACK);		// this is the default
 
-	Model ourModel(PATH_MODEL_LITTLEWITCH);
+	//Model ourModel(PATH_MODEL_LITTLEWITCH);
 	Shader shader(PATH_SHADER_VERTEX, PATH_SHADER_FRAG);
-	if(ENABLE_GAMMA || ENABLE_HDR || ENABLE_BLOOM){
+	Shader normalShader(PATH_SHADER_VISNORMAL_VERT, PATH_SHADER_VISNORMAL_FRAG, PATH_SHADER_VISNORMAL_GEOM);
+	if (ENABLE_GAMMA || ENABLE_HDR || ENABLE_BLOOM){
 		// we need to do gamma correction and tone mapping in the last screen frame buffer.
 		// also, if HDR enabled, the HDR render buffer, along with all consequent frame buffers,
 		// must equip with floating color buffer GL_RGBA_16/32F.
-		ENABLE_FILTER = 1;	
+		ENABLE_FILTER = 1;
 	}
 	if(ENABLE_FILTER){
 		filter = new Filter(SCR_WIDTH, SCR_HEIGHT, ENABLE_GAMMA, ENABLE_HDR, ENABLE_BLOOM);
@@ -121,9 +123,6 @@ int main(){
 
 	shader.use();
 	setLighting(shader);
-
-	// draw in wireframe
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window)){
         float currentFrame = glfwGetTime();
@@ -152,7 +151,17 @@ int main(){
         shader.setMat4("view", view);
         shader.setMat4("model", model);
         //ourModel.Draw(shader);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);		// to draw in lineframe
 		front3d->Draw(&shader);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		if(ENABLE_NORMALVIS){
+			normalShader.use();
+			normalShader.setMat4("projection", projection);
+			normalShader.setMat4("view", view);
+        	normalShader.setMat4("model", model);
+			front3d->Draw(&normalShader);
+		}
 
 		if(ENABLE_SKYBOX){
 			skyboxShader->use();
@@ -193,7 +202,7 @@ void processInput(GLFWwindow *window){
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){
     // make sure the viewport matches the new window dimensions
-	// the width and height is actuallt 2*(w, h) (as we specified to glVp) on retina displays
+	// the width and height is actuallt 2*(w, h) (as we specified to glViewport) on retina displays
     glViewport(0, 0, width, height);
 }
 
@@ -217,11 +226,11 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 
 void setLighting(Shader shader){
 	vector<PointLight*> lights{
-		new PointLight(glm::vec3(0.0, 90.0, 0.0)),
-		// new PointLight(glm::vec3(5.0, 0.0, 0.0)),
-		// new PointLight(glm::vec3(0.0, 0.0, 5.0)),
+		new PointLight(glm::vec3(10.0, 30.0, 10.0)),
 	};
+	DirLight dirLight(glm::vec3(0.5, -1.0, 0.5));
 
 	for (int i = 0; i < lights.size(); i++)
 		lights[i]->set(&shader, "pointLights[" + std::to_string(i) + "].");
+	dirLight.set(&shader, "dirLight.");
 }
