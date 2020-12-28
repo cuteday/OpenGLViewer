@@ -10,9 +10,8 @@
 
 #include "mesh.hpp"
 #include "shader.hpp"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include "math.hpp"
+#include "function.hpp"
 
 #include <string>
 #include <fstream>
@@ -246,7 +245,7 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
     glGenTextures(1, &textureID);
 
     int width, height, nrComponents;
-    unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
+	unsigned char *data = loadImage(filename, &width, &height, &nrComponents);
     if (data)
     {
         GLenum format, internel_format;
@@ -277,6 +276,6 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
         std::cout << "Texture failed to load at path: " << path << std::endl;
 	}
 
-	stbi_image_free(data);
+	freeImage(data);
 	return textureID;
 }

@@ -4,8 +4,6 @@
 #include <glm/glm.hpp>
 
 #include "shader.hpp"
-// #define STB_IMAGE_IMPLEMENTATION
-// #include "stb_image.h"
   
 #include <vector>
 #include <string>
@@ -80,17 +78,16 @@ public:
 		glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
 		for (int i = 0; i < faces.size();i++){
 			// std::cout << "Loading skybox from: " + path + faces[i] << std::endl;
-			unsigned char *data = stbi_load((path + faces[i]).c_str(), &width, &height, &nrChannels, 0);
+			unsigned char *data = loadImage((path + faces[i]).c_str(), &width, &height, &nrChannels);
 			if (data){
 				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
 							0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        	}
+			}
 			else{
 				std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
 			}
-			stbi_image_free(data);
+			freeImage(data);
 		}
-		//stbi_set_flip_vertically_on_load(true);
 
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

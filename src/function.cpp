@@ -4,12 +4,13 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 
-// hi hi
-void savePixels(uchar* data, const char* output_path, unsigned int width, unsigned int height){
+// Save the framebuffer RGB data to image, based on OpenCV API.
+// The input data has 3 channels, R, G, B, row major, usually get through glReadPixels().
+void saveImage(uchar* data, const char* output_path, unsigned int width, unsigned int height, bool flipUV){
 	
 	cv::Mat img(height, width, CV_8UC(3));
 	for (int i = 0; i < height; i++){
-		uchar *p = img.ptr<uchar>(height - 1 - i);
+		uchar *p = img.ptr<uchar>(flipUV ? height - 1 - i : i);	// can also use cv::flip 
 		for (int j = 0; j < width; j++){
 			int k1 = (i * width + j) * 3, k2 = j * 3;
 			// RGB in OpenGL color buffer but BGR in OpenCV Mat
@@ -22,14 +23,37 @@ void savePixels(uchar* data, const char* output_path, unsigned int width, unsign
 	cv::imwrite(output_path, img);
 }
 
+//	Save current framebuffer's RGB color attachment to image.
 void screenshot(const char* output_path){
 	GLint viewPort[4] = {0};
 	glGetIntegerv(GL_VIEWPORT, viewPort);
 	unsigned char *pixels = new unsigned char[viewPort[3] * viewPort[2] * 3];
 	glReadPixels(viewPort[0], viewPort[1], viewPort[2], viewPort[3], GL_RGB, GL_UNSIGNED_BYTE, pixels);
-	savePixels(pixels, output_path, viewPort[2], viewPort[3]);
+	saveImage(pixels, output_path, viewPort[2], viewPort[3]);
 	delete[] pixels;
 }
+
+/** @brief This is a wrapper of OpenCV::imread()
+ * 	@return A consecutive memory with row major RGB image data, returns NULL if fails to read.
+ * 		The memory needs to be free manually, using freeImage() or delete[]. 
+*/
+unsigned char* loadImage(std::string filename, int* width, int* height, int* channels, bool flipUV){
+	cv::Mat img = cv::imread(filename);
+	assert(img.isContinuous());
+	cv::cvtColor(img, img, cv::COLOR_BGR2RGB);
+	if(flipUV) cv::flip(img, img, 1);
+	if(img.data == NULL) return NULL;
+
+	*width = img.cols;
+	*height = img.rows;
+	*channels = img.channels();
+
+	size_t size = img.elemSize() * img.total();
+	uchar *data = new uchar[size];
+	memcpy(data, img.data, size);
+	return data;
+}
+
 
 GLenum glCheckError_(const char *file, int line){
 

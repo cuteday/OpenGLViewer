@@ -41,7 +41,6 @@ include_directories (
 
 set(SRC_LIST 
 	${PROJECT_SOURCE_DIR}/include/glad.cpp
-	${PROJECT_SOURCE_DIR}/include/stb_image.h 
 	${PROJECT_SOURCE_DIR}/src/shader.hpp 
 	${PROJECT_SOURCE_DIR}/src/mesh.hpp 
 	${PROJECT_SOURCE_DIR}/src/model.hpp 
