@@ -15,3 +15,7 @@ void generateFramebuffer(unsigned int width, unsigned int height, unsigned int *
 
 GLenum glCheckError_(const char *file, int line);
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
+
+void savePixels(unsigned char *data, const char *output_path, unsigned int width, unsigned int height);
+
+void screenshot(const char *output_path);

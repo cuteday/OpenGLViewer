@@ -51,7 +51,6 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
-bool snapshot = false;
 
 // timing
 float deltaTime = 0.0f;
@@ -176,12 +175,6 @@ int main(){
 		if (ENABLE_FILTER)
 			filter->Draw(screenShader);
 
-		if(snapshot){
-			unsigned char pixels[1280 * 720];
-			glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-			snapshot = false;
-		}
-
 		glfwSwapBuffers(window);
 		glfwPollEvents();
     }
@@ -206,7 +199,7 @@ void processInput(GLFWwindow *window){
 	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
 		camera.ProcessKeyboard(DOWNWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-		snapshot = true;
+		screenshot("../texture/scrshot.png");
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){

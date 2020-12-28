@@ -1,10 +1,34 @@
 #include "function.hpp"
 #include <iostream>
 
-//#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 
-void savePixels(unsigned char* data, const char* output_path){
+// hi hi
+void savePixels(uchar* data, const char* output_path, unsigned int width, unsigned int height){
+	
+	cv::Mat img(height, width, CV_8UC(3));
+	for (int i = 0; i < height; i++){
+		uchar *p = img.ptr<uchar>(height - 1 - i);
+		for (int j = 0; j < width; j++){
+			int k1 = (i * width + j) * 3, k2 = j * 3;
+			// RGB in OpenGL color buffer but BGR in OpenCV Mat
+			p[k2] = data[k1 + 2];
+			p[k2 + 1] = data[k1 + 1];
+			p[k2 + 2] = data[k1];
+		}
+	}
+	std::cout << "saving image to" << output_path <<"...\n";
+	cv::imwrite(output_path, img);
+}
 
+void screenshot(const char* output_path){
+	GLint viewPort[4] = {0};
+	glGetIntegerv(GL_VIEWPORT, viewPort);
+	unsigned char *pixels = new unsigned char[viewPort[3] * viewPort[2] * 3];
+	glReadPixels(viewPort[0], viewPort[1], viewPort[2], viewPort[3], GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	savePixels(pixels, output_path, viewPort[2], viewPort[3]);
+	delete[] pixels;
 }
 
 GLenum glCheckError_(const char *file, int line){
