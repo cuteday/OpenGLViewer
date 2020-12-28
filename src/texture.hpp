@@ -6,6 +6,8 @@
  *  3 bind texture according to gamma correction settings 
  */
 
+#include <ft2build.h>
+
 class TextureLoader{
 public:
 	TextureLoader(){

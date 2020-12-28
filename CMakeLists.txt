@@ -26,13 +26,18 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/deps/glm)
 
 find_package(OpenGL REQUIRED)
 find_package(assimp REQUIRED)
+find_package(Freetype REQUIRED)
+find_package(OpenCV REQUIRED)
 
 link_directories(${ASSIMP_LIBRARY_DIRS})
 include_directories (
 	/usr/local/include 
 	${PROJECT_SOURCE_DIR}/include 
 	${PROJECT_SOURCE_DIR}/src
-	${ASSIMP_INCLUDE_DIRS})
+	${ASSIMP_INCLUDE_DIRS}
+	${OpenCV_INCLUDE_DIRS}
+	#${FREETYPE_INCLUDE_DIRS}
+	)
 
 set(SRC_LIST 
 	${PROJECT_SOURCE_DIR}/include/glad.cpp
@@ -56,5 +61,7 @@ foreach(executable IN LISTS TARGET)
 	target_include_directories(${executable} PUBLIC ${OPENGL_INCLUDE_DIR})
 	target_link_libraries(${executable} glfw)
 	target_link_libraries(${executable} ${ASSIMP_LIBRARIES})
+	#target_link_libraries(${executable} ${FREETYPE_LIBRARIES})
+	target_link_libraries(${executable} ${OpenCV_LIBS})
 	target_link_libraries(${executable} ${OPENGL_gl_LIBRARY})
 endforeach()

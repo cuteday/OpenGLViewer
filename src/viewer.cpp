@@ -44,13 +44,14 @@ const char *PATH_MODEL_NANOSUIT = "/Users/cappu/Public/Projects/OpenGLViewer/mod
 const char *PATH_MODEL_LITTLEWITCH = "/Users/cappu/Public/Projects/OpenGLViewer/model/halloween-little-witch/source/03/03.obj";
 const char *PATH_MODEL_SCENENET = "/Users/cappu/Public/Projects/OpenGLViewer/model/SceneNetData/1Office/66office_scene.obj";
 const char *PATH_MODEL_REPLICA = "/Users/cappu/Public/Projects/OpenGLViewer/model/Replica/apartment_0/mesh.ply";
-const char *PATH_MODEL_3DFRONT = "/Users/cappu/Public/Projects/OpenGLViewer/model/3dfront/3935a020-6a26-4e14-ba45-39062fc8aed0";
+const char *PATH_MODEL_3DFRONT = "/Users/cappu/Public/Projects/OpenGLViewer/model/3dfront/ae41efd7-9126-4ae0-b51a-bb2ca3747aea";
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
+bool snapshot = false;
 
 // timing
 float deltaTime = 0.0f;
@@ -90,7 +91,7 @@ int main(){
         return -1;
     }
 
-    stbi_set_flip_vertically_on_load(false);
+    //stbi_set_flip_vertically_on_load(false);
 
 	Scene *front3d = Importer::Import3DFront(PATH_MODEL_3DFRONT);
 
@@ -175,6 +176,12 @@ int main(){
 		if (ENABLE_FILTER)
 			filter->Draw(screenShader);
 
+		if(snapshot){
+			unsigned char pixels[1280 * 720];
+			glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+			snapshot = false;
+		}
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
     }
@@ -198,6 +205,8 @@ void processInput(GLFWwindow *window){
 		camera.ProcessKeyboard(UPWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
 		camera.ProcessKeyboard(DOWNWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+		snapshot = true;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){

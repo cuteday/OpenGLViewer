@@ -12,3 +12,6 @@ void generateMSFramebuffer(unsigned int width, unsigned int height, unsigned int
 void generateColorTexture(unsigned int *texture, unsigned int width, unsigned int height, bool HDR = true);
 
 void generateFramebuffer(unsigned int width, unsigned int height, unsigned int *framebuffer, unsigned int *textureColorbuffer, unsigned int *RBO, bool HDR = true);
+
+GLenum glCheckError_(const char *file, int line);
+#define glCheckError() glCheckError_(__FILE__, __LINE__)
