@@ -3,7 +3,7 @@ project                ( OpenGLViewer )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1) 
 
-add_definitions(-std=c++17)
+#add_definitions(-std=c++17)
 set(CXX_FLAGS "-std=c++17")
 set(CMAKE_CXX_FLAGS_DEBUG   "-O0" )
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG " )
@@ -31,9 +31,10 @@ find_package(OpenCV REQUIRED)
 
 link_directories(${ASSIMP_LIBRARY_DIRS})
 include_directories (
-	/usr/local/include 
-	${PROJECT_SOURCE_DIR}/include 
-	${PROJECT_SOURCE_DIR}/src
+	/usr/local/include/
+	${PROJECT_SOURCE_DIR}/include/ 
+	${PROJECT_SOURCE_DIR}/deps/glm/ 
+	${PROJECT_SOURCE_DIR}/src/
 	${ASSIMP_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 	#${FREETYPE_INCLUDE_DIRS}
@@ -50,10 +51,11 @@ set(SRC_LIST
 	${PROJECT_SOURCE_DIR}/src/light.hpp 
 	${PROJECT_SOURCE_DIR}/src/math.hpp 
 	${PROJECT_SOURCE_DIR}/src/function.cpp 
-	${PROJECT_SOURCE_DIR}/src/importer.hpp )
+	${PROJECT_SOURCE_DIR}/src/importer.hpp)
 
 set(TARGET 
-	viewer)
+	viewer
+	cam2img)
 
 foreach(executable IN LISTS TARGET)
 	add_executable(${executable} ${PROJECT_SOURCE_DIR}/src/${executable}.cpp ${SRC_LIST})

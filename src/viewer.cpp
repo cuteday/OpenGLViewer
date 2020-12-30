@@ -18,7 +18,7 @@
 #include <string>
 
 bool ENABLE_FILTER = 1;
-bool ENABLE_SKYBOX = 1;
+bool ENABLE_SKYBOX = 0;
 bool ENABLE_MSAA = 0;
 bool ENABLE_GAMMA = 1;
 bool ENABLE_HDR = 1;
@@ -40,11 +40,9 @@ const unsigned int SCR_HEIGHT = 720;
 const char *PATH_TEXTURE_SKYBOX = "/Users/cappu/Public/Projects/OpenGLViewer/texture/skybox/";
 
 const char *PATH_MODEL_NOEL = "/Users/cappu/Public/Projects/OpenGLViewer/model/3D_fanart_Noel_From_Sora_no_Method.blend";
-const char *PATH_MODEL_NANOSUIT = "/Users/cappu/Public/Projects/OpenGLViewer/model/nanosuit/nanosuit.obj";
 const char *PATH_MODEL_LITTLEWITCH = "/Users/cappu/Public/Projects/OpenGLViewer/model/halloween-little-witch/source/03/03.obj";
 const char *PATH_MODEL_SCENENET = "/Users/cappu/Public/Projects/OpenGLViewer/model/SceneNetData/1Office/66office_scene.obj";
-const char *PATH_MODEL_REPLICA = "/Users/cappu/Public/Projects/OpenGLViewer/model/Replica/apartment_0/mesh.ply";
-const char *PATH_MODEL_3DFRONT = "/Users/cappu/Public/Projects/OpenGLViewer/model/3dfront/ae41efd7-9126-4ae0-b51a-bb2ca3747aea";
+const char *PATH_MODEL_3DFRONT = "/Users/cappu/Public/Projects/OpenGLViewer/model/3dfront/d9eb740a-ef9b-41f5-8fe9-09200a8702d4";
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -63,39 +61,17 @@ MultiSample *multiSample;
 
 int main(){
 
-	glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+	GLFWwindow *window = initGlfwContext(SCR_WIDTH, SCR_HEIGHT, false);
 
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGLViewer", NULL, NULL);
-    if (window == NULL){
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
-
 	// hide mouse and restrict cursor to this window...
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
-
-    //stbi_set_flip_vertically_on_load(false);
 
 	Scene *front3d = Importer::Import3DFront(PATH_MODEL_3DFRONT);
 
     glEnable(GL_DEPTH_TEST);
-	// glEnable(GL_STENCIL_TEST);
 	// glEnable(GL_CULL_FACE);	// face culling
 	// glCullFace(GL_BACK);		// this is the default
 
@@ -135,7 +111,6 @@ int main(){
 		else if (ENABLE_FILTER)
 			filter->toScreenTexture();			// switch framebuffer to screen texture... 
 
-
 		// glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
@@ -151,9 +126,7 @@ int main(){
         shader.setMat4("view", view);
         shader.setMat4("model", model);
         //ourModel.Draw(shader);
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);		// to draw in lineframe
 		front3d->Draw(&shader);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		if(ENABLE_NORMALVIS){
 			normalShader.use();
@@ -162,14 +135,12 @@ int main(){
         	normalShader.setMat4("model", model);
 			front3d->Draw(&normalShader);
 		}
-
 		if(ENABLE_SKYBOX){
 			skyboxShader->use();
 			skyboxShader->setMat4("view", glm::mat4(glm::mat3(view)));
 			skyboxShader->setMat4("projection", projection);
 			skybox->Draw(skyboxShader);
 		}
-
 		if(ENABLE_MSAA)		
 			multiSample->Draw(ENABLE_FILTER ? filter->getFramebuffer() : 0);
 		if (ENABLE_FILTER)
@@ -218,7 +189,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
     float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
     lastX = xpos;
     lastY = ypos;
-
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
 

@@ -18,4 +18,6 @@ glm::mat4 to_glm_mat4(const aiMatrix4x4& assimp_matrix){
 	return mat;
 }
 
+
+
 }

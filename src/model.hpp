@@ -246,8 +246,7 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
 
     int width, height, nrComponents;
 	unsigned char *data = loadImage(filename, &width, &height, &nrComponents);
-    if (data)
-    {
+    if (data){
         GLenum format, internel_format;
         if (nrComponents == 1){
             format = GL_RED;
@@ -271,8 +270,7 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
-    else
-    {
+    else{
         std::cout << "Texture failed to load at path: " << path << std::endl;
 	}
 

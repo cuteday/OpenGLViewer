@@ -4,8 +4,39 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 
-// Save the framebuffer RGB data to image, based on OpenCV API.
-// The input data has 3 channels, R, G, B, row major, usually get through glReadPixels().
+/**	OpenGL context is combined with window in GLFW. 
+ * 	This function creates a GLFWwindow and make it as the current context.
+ *  @param windowless set to true if you want to do offscreen rendering on a framebuffer
+ * 	@return GLFWwindow
+ */
+GLFWwindow* initGlfwContext(int width, int height, bool windowless){
+	if(windowless){
+#ifdef __APPLE__
+		glfwInitHint(GLFW_COCOA_MENUBAR, GLFW_FALSE);
+#endif
+		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+	}
+	glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+	GLFWwindow* window = glfwCreateWindow(width, height, "OpenGLViewer", NULL, NULL);
+    if (window == NULL){
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+		assert(false);
+	}
+	glfwMakeContextCurrent(window);
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
+        std::cout << "Failed to initialize GLAD" << std::endl;
+		assert(false);
+    }
+	return window;
+}
+
 void saveImage(uchar* data, const char* output_path, unsigned int width, unsigned int height, bool flipUV){
 	
 	cv::Mat img(height, width, CV_8UC(3));
@@ -34,9 +65,10 @@ void screenshot(const char* output_path){
 }
 
 /** @brief This is a wrapper of OpenCV::imread()
+ *  @param FlipUV Set this to true when load some kind of textures.
  * 	@return A consecutive memory with row major RGB image data, returns NULL if fails to read.
  * 		The memory needs to be free manually, using freeImage() or delete[]. 
-*/
+ */
 unsigned char* loadImage(std::string filename, int* width, int* height, int* channels, bool flipUV){
 	cv::Mat img = cv::imread(filename);
 	assert(img.isContinuous());

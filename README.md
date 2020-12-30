@@ -14,18 +14,18 @@ This is an unfinished naive work, with nothing useful but for learning purpose â
 
 ## Dependencies
 OpenGL 4.1+ \
-[Freetype](https://www.freetype.org/download.html) \ 
 [Assimp](https://github.com/assimp/assimp) \
 [GLFW]() \
 [GLAD](https://github.com/Dav1dde/glad) \
 [GLM]() \
+[Freetype](https://www.freetype.org/download.html) \ 
 [OpenCV]()
 
 ## Usage
 Install dependencies: Assimp, Freetype (GLFW and GLM already included in submodules)\
 Replace the machine-dependent [GLAD file](https://glad.dav1d.de/) `glad.c` and `glad.h` in `/include/` 
 ~~~
-git submodule --init 
+git submodule update --init --recursive
 mkdir build
 cd build
 cmake ..
