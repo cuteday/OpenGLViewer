@@ -20,7 +20,7 @@ namespace Importer{
 	using namespace cv::utils;
 
 	Scene* Import3DFront(string path){
-		if(!fs::exists(path) || !fs::isDirectory(path)){
+		if(path == "" || !fs::exists(path) || !fs::isDirectory(path)){
 			cout << "3D-Front house directory path "<< path <<" not exist or not a directory!\n";
 			return NULL;
 		}

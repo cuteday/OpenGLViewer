@@ -117,7 +117,8 @@ int main(){
 
 		// view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
+        //glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 view = camera.GetCameraMatrix();
 		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));	
 
 		shader.use();
@@ -169,6 +170,10 @@ void processInput(GLFWwindow *window){
 		camera.ProcessKeyboard(UPWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
 		camera.ProcessKeyboard(DOWNWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		camera.ProcessKeyboard(ROLLLT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+		camera.ProcessKeyboard(ROLLRT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
 		screenshot("../texture/scrshot.png");
 }

@@ -24,8 +24,13 @@ glm::mat4 model, view, projection;
 void setLighting(Shader &shader);
 
 int main(int argc, char* argv[]){
+
+	if(argc < 2){
+		cout << "Not enough args" << endl;
+		return 0;
+	}
+
 	GLFWwindow* window = initGlfwContext(width, height, true);
-	
 	glViewport(0, 0, width, height);
 
 	path_model = argv[1];
