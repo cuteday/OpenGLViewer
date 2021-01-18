@@ -69,12 +69,12 @@ public:
 		setup();
 	}
 
-	void Draw(Shader *screenShader){
+	void Draw(Shader *screenShader, unsigned int tgtbuffer = 0){
 		if(bloom){
 			gaussian->Draw(bloomColorbuffer);
 		}
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, tgtbuffer);
 		glDisable(GL_DEPTH_TEST);
         glClear(GL_COLOR_BUFFER_BIT);
 

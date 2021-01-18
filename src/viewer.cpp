@@ -18,8 +18,8 @@
 #include <string>
 
 bool ENABLE_FILTER = 1;
-bool ENABLE_SKYBOX = 0;
-bool ENABLE_MSAA = 0;
+bool ENABLE_SKYBOX = 1;
+bool ENABLE_MSAA = 1;
 bool ENABLE_GAMMA = 1;
 bool ENABLE_HDR = 1;
 bool ENABLE_BLOOM = 0;
@@ -36,13 +36,12 @@ void setLighting(Shader shader);
 const unsigned int SCR_WIDTH = 1080;
 const unsigned int SCR_HEIGHT = 720;
 
-
 const char *PATH_TEXTURE_SKYBOX = "/Users/cappu/Public/Projects/OpenGLViewer/texture/skybox/";
 
 const char *PATH_MODEL_NOEL = "/Users/cappu/Public/Projects/OpenGLViewer/model/3D_fanart_Noel_From_Sora_no_Method.blend";
 const char *PATH_MODEL_LITTLEWITCH = "/Users/cappu/Public/Projects/OpenGLViewer/model/halloween-little-witch/source/03/03.obj";
 const char *PATH_MODEL_SCENENET = "/Users/cappu/Public/Projects/OpenGLViewer/model/SceneNetData/1Office/66office_scene.obj";
-const char *PATH_MODEL_3DFRONT = "/Users/cappu/Public/Projects/OpenGLViewer/model/3dfront/d9eb740a-ef9b-41f5-8fe9-09200a8702d4";
+const char *PATH_MODEL_3DFRONT = "/Users/cappu/Public/Projects/OpenGLViewer/model/3dfront/00004f89-9aa5-43c2-ae3c-129586be8aaa";
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -120,6 +119,19 @@ int main(){
         //glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 view = camera.GetCameraMatrix();
 		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));	
+
+		// display pos and rotate on window title (for now, will translate to UI or text later)
+		std::stringstream ss;
+		ss << "GLViewer [Pos (" 
+			<< camera.Position[0] << " "
+			<< camera.Position[1] << " "
+			<< camera.Position[2] << ") "
+			<< "Rotate ("
+			<< glm::radians(camera.Roll) << " "
+			<< glm::radians(camera.Yaw) << " "
+			<< glm::radians(camera.Pitch) << " "
+		   	<< ")]";
+		glfwSetWindowTitle(window, ss.str().c_str());
 
 		shader.use();
 		shader.setVec3("viewPos", camera.Position);
@@ -211,3 +223,4 @@ void setLighting(Shader shader){
 		lights[i]->set(&shader, "pointLights[" + std::to_string(i) + "].");
 	dirLight.set(&shader, "dirLight.");
 }
+

@@ -69,13 +69,14 @@ public:
         return glm::lookAt(Position, Position + Front, Up);
     }
 
-	glm::mat4 GetCameraMatrix(){
+	glm::mat4 GetCameraMatrix()
+	{
 		// Camera Coord Euler Convention: Tait-Bryan YX
 		// -> extrinsic: XY (Y*X in premult-matrix)
 		// -> inverse: YX (X*Y in premult-matrix)
 		glm::mat4 position = glm::translate(glm::mat4(1.0), -Position);
-		glm::mat4 camera = glm::transpose(glm::eulerAngleYXZ(
-			glm::radians(Yaw), glm::radians(Pitch), glm::radians(Roll)));
+		glm::mat4 camera = glm::transpose(glm::eulerAngleZYX(
+			glm::radians(Roll), glm::radians(Yaw), glm::radians(Pitch)));
 		return camera * position;
 	}
 
@@ -127,7 +128,12 @@ public:
                 Pitch = -89.0f;
         }
 
-        // update Front, Right and Up Vectors using the updated Euler angles
+		if(Yaw < 0.0f)
+			Yaw += 360.0f;
+		else if(Yaw > 360.0f)
+			Yaw -= 360.0f;
+
+		// update Front, Right and Up Vectors using the updated Euler angles
         updateCameraVectors();
     }
 
@@ -146,7 +152,7 @@ private:
     {
         // calculate the new Front vector
         glm::vec3 front(0.0, 0.0, -1.0);
-		front = glm::eulerAngleYXZ(glm::radians(Yaw), glm::radians(Pitch), glm::radians(Roll)) * glm::vec4(front, 0.0);
+		front = glm::eulerAngleZYX( glm::radians(Roll), glm::radians(Yaw), glm::radians(Pitch)) * glm::vec4(front, 0.0);
         // front.x = -sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
         // front.y = sin(glm::radians(Pitch));
         // front.z = -cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));

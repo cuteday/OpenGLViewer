@@ -7,6 +7,10 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include <string>
+#include <vector>
+using namespace std;
+
 namespace Math{
 
 glm::mat4 to_glm_mat4(const aiMatrix4x4& assimp_matrix){
@@ -18,6 +22,27 @@ glm::mat4 to_glm_mat4(const aiMatrix4x4& assimp_matrix){
 	return mat;
 }
 
-
-
+glm::vec3 transform_coordframe(glm::vec3 point, vector<string> axes = {"X", "Y", "Z"}){
+	glm::vec3 vec(0.0);
+	if(axes.size() != 3){
+		cout << "ERROR::transform_coords::specified axis number not 3" << endl;
+		assert(false);
+	}
+	for (int i = 0; i < 3;i++){
+		char axis = *axes[i].end();
+		if (axis == 'X')
+			vec[i] = point[0];
+		else if(axis == 'Y')
+			vec[i] = point[1];
+		else if(axis == 'Z')
+			vec[i] = point[2];
+		else {
+			cout << "ERROR::transform_coords::invalid axis name" << endl;
+			assert(false);
+		}
+		if(axes[i][0] == '-')
+			vec[i] *= -1;
+	}
+	return vec;
+}
 }

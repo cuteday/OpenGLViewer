@@ -23,6 +23,15 @@ using namespace std;
 
 unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = true);
 
+unsigned int defaultPFlags = aiProcess_Triangulate // all the meshes be converted to tri-mesh.
+					 //| aiProcess_GenNormals  		// generate normals if not existing (vertex with face normal, to get average normal use aiProcess_GenSmoothNormals)
+					 | aiProcess_GenSmoothNormals	   // generate normals by interpolating face normals, without duplicate vertices
+					 | aiProcess_FlipUVs			   // if turned on, we dont have to manually filp textures when read them
+					 | aiProcess_CalcTangentSpace	   // Calculate tangent and bitangent vector in model space
+					 | aiProcess_MakeLeftHanded			
+					 | aiProcess_PreTransformVertices; // every node / object has a transform matrix, apply it to all vertices in this node;
+	
+
 class Model 
 {
 public:
@@ -52,18 +61,13 @@ public:
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void loadModel(string const &path, Assimp::Importer *importer = NULL, unsigned int pFlags = -1){
         // read file via ASSIMP
-		cout << "loading model "<< path << endl;
+		// cout << "loading model "<< path << endl;
 		if(importer == NULL){
 			importer = new Assimp::Importer;
 			importer->SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 80);	// default ...
 		}
 		if(pFlags == -1){
-			pFlags = aiProcess_Triangulate // all the meshes be converted to tri-mesh.
-					 //| aiProcess_GenNormals  		// generate normals if not existing (vertex with face normal, to get average normal use aiProcess_GenSmoothNormals)
-					 | aiProcess_GenSmoothNormals	   // generate normals by interpolating face normals, without duplicate vertices
-					 | aiProcess_FlipUVs			   // if turned on, we dont have to manually filp textures when read them
-					 | aiProcess_CalcTangentSpace	   // Calculate tangent and bitangent vector in model space
-					 | aiProcess_PreTransformVertices; // every node / object has a transform matrix, apply it to all vertices in this node;
+			pFlags = defaultPFlags;
 		}
 		const aiScene *scene = importer->ReadFile(path, pFlags);
 		// check for errors

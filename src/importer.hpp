@@ -34,12 +34,14 @@ namespace Importer{
 			fs::glob(room, "*.obj", objs, false, true);
 			for(string obj: objs){
 				Assimp::Importer *importer = NULL;
-				if (obj.find("mesh.obj") != string::npos ){
+				unsigned int pFlags = -1;
+				if (obj.find("mesh.obj") != string::npos){
 					importer = new Assimp::Importer;
+					pFlags = defaultPFlags | aiProcess_ConvertToLeftHanded;
 					importer->SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 80);
 				}
 				Model model;
-				model.loadModel(obj, importer);
+				model.loadModel(obj, importer, pFlags);
 				scene->models.push_back(model);
 			}
 		}

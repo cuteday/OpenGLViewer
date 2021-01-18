@@ -50,7 +50,6 @@ void saveImage(uchar* data, const char* output_path, unsigned int width, unsigne
 			p[k2 + 2] = data[k1];
 		}
 	}
-	std::cout << "saving image to" << output_path <<"...\n";
 	cv::imwrite(output_path, img);
 }
 
@@ -60,6 +59,7 @@ void screenshot(const char* output_path){
 	glGetIntegerv(GL_VIEWPORT, viewPort);
 	unsigned char *pixels = new unsigned char[viewPort[3] * viewPort[2] * 3];
 	glReadPixels(viewPort[0], viewPort[1], viewPort[2], viewPort[3], GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	std::cout << "Saving screen image to" << output_path << "...\n";	
 	saveImage(pixels, output_path, viewPort[2], viewPort[3]);
 	delete[] pixels;
 }
@@ -71,6 +71,10 @@ void screenshot(const char* output_path){
  */
 unsigned char* loadImage(std::string filename, int* width, int* height, int* channels, bool flipUV){
 	cv::Mat img = cv::imread(filename);
+	if(img.data ==NULL){
+		std::cout << "LoadImage: load " + filename + " failed" << std::endl;
+		return NULL;
+	}
 	assert(img.isContinuous());
 	cv::cvtColor(img, img, cv::COLOR_BGR2RGB);
 	if(flipUV) cv::flip(img, img, 1);
@@ -85,7 +89,6 @@ unsigned char* loadImage(std::string filename, int* width, int* height, int* cha
 	memcpy(data, img.data, size);
 	return data;
 }
-
 
 GLenum glCheckError_(const char *file, int line){
 
